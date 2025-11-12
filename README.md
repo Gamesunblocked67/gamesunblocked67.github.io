@@ -1,4 +1,3 @@
-# Games-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,30 +21,33 @@
             --button-hover-bg: #555555;
             --header-bg: #222222; /* Header for draggable modals */
             --update-color: #ff5722; /* Deep Orange for update button */
+            --downgrade-color: #f44336; /* Red for downgrade button */
         }
 
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
+            /* FIX: Allow scrolling by removing overflow: hidden and setting min-height */
+            min-height: 100vh; 
+            overflow-x: hidden;
+            overflow-y: auto; 
+            
             background: linear-gradient(135deg, var(--primary-purple) 0%, var(--light-purple) 100%);
             color: var(--text-color);
-            overflow: hidden; 
-            height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            align-items: center; /* Center content horizontally */
             position: relative;
         }
 
         /* Particle Effect */
         .stars {
-            position: absolute;
+            position: fixed; /* Keep stars fixed while scrolling */
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            min-height: 100%; /* Must cover the viewport */
             pointer-events: none;
             overflow: hidden;
         }
@@ -66,13 +68,13 @@
 
         /* Update Button Styling */
         #update-button-container {
-            position: absolute;
+            position: fixed; /* Keep fixed position */
             top: 15px;
             right: 15px;
             z-index: 50;
         }
 
-        #update-button {
+        #update-button, #downgrade-in-updates {
             display: none; /* Controlled by JS */
             padding: 10px 15px;
             background-color: var(--update-color);
@@ -82,6 +84,9 @@
             font-weight: 700;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.3s;
+        }
+        
+        #update-button {
             animation: pulse 1.5s infinite;
         }
 
@@ -90,31 +95,22 @@
             transform: scale(1.05);
         }
 
+        #downgrade-in-updates {
+            display: block; /* Always visible when on the updates page (controlled by modal visibility) */
+            background-color: var(--downgrade-color);
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        #downgrade-in-updates:hover {
+            background-color: #e53935;
+            transform: scale(1.01);
+        }
+
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
-        }
-
-        /* Update Modal (Simulated Progress) */
-        #updateProgressModal {
-            z-index: 200;
-        }
-        
-        .update-bar-container {
-            width: 300px;
-            height: 20px;
-            background-color: #444;
-            border-radius: 10px;
-            margin-top: 15px;
-            overflow: hidden;
-        }
-        
-        #update-progress-bar {
-            width: 0%;
-            height: 100%;
-            background-color: var(--update-color);
-            transition: width 0.1s linear;
         }
 
         /* Main Container - The Selenite Window */
@@ -129,6 +125,7 @@
             border-radius: 15px;
             box-shadow: 0 0 25px var(--modal-border);
             padding: 30px;
+            margin: 50px 0; /* Add vertical margin to look centered on large screens and allow scroll room */
         }
 
         .title {
@@ -139,7 +136,7 @@
         }
 
         .subtitle {
-            font-size: 1.2em; /* Slightly larger for the random messages */
+            font-size: 1.2em;
             color: var(--icon-color);
             margin-bottom: 25px;
         }
@@ -169,10 +166,10 @@
             transform: translateY(-2px);
         }
 
-        /* Game Grid Styling */
+        /* Game Grid Styling - FIX APPLIED HERE */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Use minmax for responsive grid */
             gap: 20px;
             background-color: var(--grid-bg);
             padding: 20px;
@@ -249,15 +246,40 @@
             overflow: hidden;
         }
 
-        /* Update Simulation Modal (smaller, fixed size) */
+        /* Update/Downgrade Simulation Modal (smaller, fixed size) */
         .modal-content-update {
             position: relative;
             width: 350px;
             padding: 30px;
             background-color: var(--grid-bg);
-            border: 3px solid var(--update-color);
+            border: 3px solid var(--update-color); /* Defaults to update color */
             border-radius: 10px;
             text-align: center;
+        }
+
+        .update-bar-container {
+            width: 300px;
+            height: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        #update-progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--update-color);
+            transition: width 0.1s linear;
+        }
+        
+        /* Change color for downgrade simulation */
+        #updateProgressModal.downgrading .modal-content-update {
+            border-color: var(--downgrade-color);
+        }
+        
+        #updateProgressModal.downgrading #update-progress-bar {
+            background-color: var(--downgrade-color);
         }
 
         .game-iframe {
@@ -297,6 +319,91 @@
         
         .setting-item strong {
             color: var(--update-color);
+        }
+        
+        .upcoming-update {
+            border: 2px dashed var(--icon-color);
+            padding: 15px;
+            margin-top: 30px;
+            border-radius: 8px;
+        }
+
+        /* Draggable/Movable Modal (Bookmarklet only) */
+        .modal-movable {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 600px;
+            max-width: 90%;
+            max-height: 90%;
+            background-color: black; 
+            border: 5px solid var(--modal-border);
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: default;
+        }
+
+        .modal-header {
+            padding: 10px;
+            background-color: var(--header-bg);
+            color: var(--icon-hover-color);
+            border-bottom: 1px solid var(--modal-border);
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-weight: bold;
+        }
+
+        .close-button {
+            font-size: 1.5em;
+            color: var(--icon-hover-color);
+            cursor: pointer;
+            margin-left: 10px;
+            transition: color 0.2s;
+        }
+
+        .close-button:hover {
+            color: #ff4d4d;
+        }
+        
+        /* Bookmark Specific Styling */
+        .bookmark-item {
+            background-color: var(--button-bg);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            text-align: left;
+        }
+
+        .bookmark-link {
+            display: block;
+            color: #4CAF50; 
+            font-family: monospace;
+            word-wrap: break-word;
+            text-decoration: none;
+            cursor: copy;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        /* Links Page Styling */
+        .link-item a {
+            color: #ff9800; /* Orange link color */
+            text-decoration: none;
+            word-wrap: break-word;
+        }
+        .link-item a:hover {
+            text-decoration: underline;
         }
 
         /* Responsive Design */
@@ -361,13 +468,12 @@
                 <span class="game-icon">🐻</span>
                 <span class="game-title">FNAF 1 (Embed)</span>
             </a>
-
             </div>
     </div>
 
     <div id="updateProgressModal" class="modal">
         <div class="modal-content-update">
-            <h3>Downloading Update v1.2.0...</h3>
+            <h3 id="progress-title">Downloading Update v1.2.0...</h3>
             <p id="update-message">Preparing files...</p>
             <div class="update-bar-container">
                 <div id="update-progress-bar"></div>
@@ -465,7 +571,7 @@
                 
                 <div class="setting-item">
                     <strong>Version 1.2.0 (Latest)</strong>
-                    <span>**NEW!** Added a Clicker Game. Implemented update notification system.</span>
+                    <span>**NEW!** Added a Clicker Game. Implemented update notification system. Fixed scrolling and grid issues.</span>
                 </div>
 
                 <div class="setting-item">
@@ -477,6 +583,17 @@
                     <strong>Version 1.1.0</strong>
                     <span>Initial release. Added GD Lite, Retro Bowl, 2048, GD Subzero, Among Us, and FNAF 1.</span>
                 </div>
+                
+                <div class="upcoming-update">
+                    <h4>🚀 Upcoming Update: v1.3.0</h4>
+                    <p style="margin-top: 5px; color: #ccc;">
+                        **Bookmarklet Overhaul!** We are adding new utility bookmarklets, including a new **Cloaker** feature and a **Theme Switcher** bookmarklet for quick style changes.
+                    </p>
+                </div>
+                
+                <button id="downgrade-in-updates" onclick="initiateDowngrade()">
+                    <span id="downgrade-text">Downgrade to v1.1.1</span>
+                </button>
 
                 <div class="setting-item">
                     <p style="color: var(--icon-color); margin-top: 20px;">
@@ -554,18 +671,22 @@
         
         const isUpdateAvailable = (storedVersion < CURRENT_VERSION);
 
-        // --- UPDATE SYSTEM LOGIC ---
+        // --- UPDATE/DOWNGRADE SYSTEM LOGIC ---
         
-        function initiateUpdate() {
-            if (!isUpdateAvailable) return;
-
+        function runSimulation(targetVersion, isDowngrade) {
             const updateModal = document.getElementById('updateProgressModal');
             const progressBar = document.getElementById('update-progress-bar');
             const updateMessage = document.getElementById('update-message');
-            const updateButton = document.getElementById('update-button');
+            const progressTitle = document.getElementById('progress-title');
             
-            // Disable button and show modal
-            updateButton.style.display = 'none';
+            updateModal.classList.toggle('downgrading', isDowngrade);
+            
+            progressTitle.textContent = isDowngrade ? 
+                `Reverting to v${targetVersion}...` : 
+                `Downloading Update v${targetVersion}...`;
+            
+            // Reset progress bar
+            progressBar.style.width = '0%';
             openModal('updateProgressModal');
             
             let progress = 0;
@@ -576,44 +697,74 @@
                 progressBar.style.width = `${progress}%`;
 
                 if (progress <= 30) {
-                    updateMessage.textContent = 'Downloading core files...';
+                    updateMessage.textContent = isDowngrade ? 'Removing v1.2.0 features...' : 'Downloading core files...';
                 } else if (progress <= 70) {
-                    updateMessage.textContent = 'Installing new game assets...';
+                    updateMessage.textContent = isDowngrade ? 'Restoring v1.1.1 assets...' : 'Installing new game assets...';
                 } else if (progress <= 95) {
-                    updateMessage.textContent = 'Finalizing configuration...';
+                    updateMessage.textContent = isDowngrade ? 'Cleaning up old files...' : 'Finalizing configuration...';
                 } else {
-                    // Update complete
+                    // Simulation complete
                     clearInterval(updateInterval);
-                    updateMessage.textContent = 'Installation complete! Reloading...';
+                    const action = isDowngrade ? 'Downgrade' : 'Installation';
+                    updateMessage.textContent = `${action} complete! Reloading...`;
                     
                     setTimeout(() => {
-                        // Apply the update by setting the new version and reloading
-                        localStorage.setItem(LOCAL_STORAGE_KEY, CURRENT_VERSION);
+                        // Apply the version change and reload
+                        localStorage.setItem(LOCAL_STORAGE_KEY, targetVersion);
                         window.location.reload();
                     }, 1000);
                 }
             }, intervalTime);
         }
 
+        function initiateUpdate() {
+            // Hide update button immediately
+            document.getElementById('update-button').style.display = 'none';
+            runSimulation(CURRENT_VERSION, false);
+        }
+        
+        function initiateDowngrade() {
+             // Hide downgrade button during process (optional)
+             document.getElementById('downgrade-in-updates').style.display = 'none';
+             runSimulation(OLD_VERSION, true);
+        }
+
+
         function displayNewContent(version) {
-            // This function runs if the stored version is CURRENT_VERSION
+            const gameGrid = document.getElementById('game-grid');
+
             if (version === CURRENT_VERSION) {
-                // Add the new game button for v1.2.0
-                const gameGrid = document.getElementById('game-grid');
+                // If on the current version (v1.2.0), add the new content
                 const newGameHTML = `
                     <a href="#" class="game-button" data-modal="clickerModal">
                         <span class="game-icon">💰</span>
                         <span class="game-title">Clicker Game (NEW!)</span>
                     </a>
                 `;
-                gameGrid.insertAdjacentHTML('beforeend', newGameHTML);
+                // Check if the game is already there to prevent duplicates on manual reloads
+                if (!gameGrid.querySelector('[data-modal="clickerModal"]')) {
+                    gameGrid.insertAdjacentHTML('beforeend', newGameHTML);
+                }
+                
+                // Hide downgrade button if already on the oldest version
+                document.getElementById('downgrade-in-updates').style.display = 'block';
+                document.getElementById('downgrade-text').textContent = 'Downgrade to v1.1.1 (Current)';
 
-                // Re-attach event listeners to all buttons (including the new one)
-                attachEventListeners();
+            } else if (version === OLD_VERSION) {
+                // If downgraded back to v1.1.1, ensure the new game is REMOVED
+                const clickerButton = gameGrid.querySelector('[data-modal="clickerModal"]');
+                if (clickerButton) {
+                    clickerButton.remove();
+                }
+                 // Update downgrade button text (since it's not the current version)
+                 document.getElementById('downgrade-in-updates').style.display = 'none'; // Hide it if you can't downgrade further
             }
             
             // Update the version display in settings
             document.getElementById('current-version-display').textContent = storedVersion;
+
+            // Re-attach event listeners to all buttons (including added/removed ones)
+            attachEventListeners();
         }
 
         // --- CORE PAGE LOGIC ---
@@ -622,10 +773,23 @@
         if (isUpdateAvailable) {
             document.getElementById('update-button').style.display = 'block';
             document.getElementById('current-version-display').textContent = storedVersion; // Show old version in settings
+            document.getElementById('downgrade-in-updates').style.display = 'none'; // Hide downgrade option if an update is available
         } else {
-            // If up to date, display the new content
+            // If up to date, display the new content (v1.2.0)
             displayNewContent(CURRENT_VERSION);
         }
+        
+        // If the stored version is the old one (v1.1.1), hide the downgrade button and show update button
+        if (storedVersion === OLD_VERSION && !isUpdateAvailable) {
+            document.getElementById('downgrade-in-updates').style.display = 'none';
+        }
+        
+        // If the stored version is the current one (v1.2.0), show the downgrade button and hide update button
+        if (storedVersion === CURRENT_VERSION) {
+            document.getElementById('downgrade-in-updates').style.display = 'block';
+            document.getElementById('downgrade-text').textContent = 'Downgrade to v1.1.1';
+        }
+
 
         // 2. Random Subtitle Message
         const SUBTITLES = [
@@ -662,7 +826,7 @@
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
-            document.body.style.overflow = '';
+            document.body.style.overflow = 'auto'; // Re-enable body scrolling
         }
 
         // 5. Attach event listeners to all buttons/links
