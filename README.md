@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -24,13 +23,19 @@
             --update-color: #ff5722; /* Deep Orange for update button */
             --downgrade-color: #f44336; /* Red for downgrade button */
             --new-feature-color: #00bcd4; /* Cyan for new features */
+            
+            /* iOS Style Colors */
+            --ios-bg: #1c1c1e;
+            --ios-card-bg: #2c2c2e;
+            --ios-separator: #48484a;
+            --ios-blue: #0a84ff; 
+            --ios-red: #ff3b30;
         }
 
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
-            /* FIX: Allow scrolling by removing overflow: hidden and setting min-height */
             min-height: 100vh; 
             overflow-x: hidden;
             overflow-y: auto; 
@@ -39,17 +44,17 @@
             color: var(--text-color);
             display: flex;
             flex-direction: column;
-            align-items: center; /* Center content horizontally */
+            align-items: center;
             position: relative;
         }
 
         /* Particle Effect */
         .stars {
-            position: fixed; /* Keep stars fixed while scrolling */
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            min-height: 100%; /* Must cover the viewport */
+            min-height: 100%;
             pointer-events: none;
             overflow: hidden;
         }
@@ -70,14 +75,14 @@
 
         /* Update Button Styling */
         #update-button-container {
-            position: fixed; /* Keep fixed position */
+            position: fixed;
             top: 15px;
             right: 15px;
             z-index: 50;
         }
 
-        #update-button, #downgrade-in-updates {
-            display: none; /* Controlled by JS */
+        #update-button {
+            display: none;
             padding: 10px 15px;
             background-color: var(--update-color);
             color: white;
@@ -86,27 +91,12 @@
             font-weight: 700;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.3s;
-        }
-        
-        #update-button {
             animation: pulse 1.5s infinite;
         }
-
+        
         #update-button:hover {
             background-color: #ff8a65;
             transform: scale(1.05);
-        }
-
-        #downgrade-in-updates {
-            display: block; /* Always visible when on the updates page (controlled by modal visibility) */
-            background-color: var(--downgrade-color);
-            margin-top: 20px;
-            width: 100%;
-        }
-        
-        #downgrade-in-updates:hover {
-            background-color: #e53935;
-            transform: scale(1.01);
         }
 
         @keyframes pulse {
@@ -115,7 +105,7 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
         }
 
-        /* Main Container - The Selenite Window */
+        /* Main Container */
         .container {
             z-index: 10;
             text-align: center;
@@ -127,7 +117,7 @@
             border-radius: 15px;
             box-shadow: 0 0 25px var(--modal-border);
             padding: 30px;
-            margin: 50px 0; /* Add vertical margin to look centered on large screens and allow scroll room */
+            margin: 50px 0;
         }
 
         .title {
@@ -143,7 +133,7 @@
             margin-bottom: 25px;
         }
 
-        /* Top Menu Styling (Text-only) */
+        /* Top Menu Styling */
         .top-menu {
             display: flex;
             gap: 25px;
@@ -168,10 +158,10 @@
             transform: translateY(-2px);
         }
 
-        /* Game Grid Styling - FIX APPLIED HERE */
+        /* Game Grid Styling */
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Use minmax for responsive grid */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
             background-color: var(--grid-bg);
             padding: 20px;
@@ -254,7 +244,7 @@
             width: 350px;
             padding: 30px;
             background-color: var(--grid-bg);
-            border: 3px solid var(--update-color); /* Defaults to update color */
+            border: 3px solid var(--update-color);
             border-radius: 10px;
             text-align: center;
         }
@@ -301,34 +291,97 @@
             text-align: left;
         }
         
-        .page-container h3 {
-            color: var(--modal-border);
-            border-bottom: 2px solid var(--modal-border);
-            padding-bottom: 10px;
-            margin-top: 0;
-            margin-bottom: 20px;
+        /* ---------------------------------------------------------------------- */
+        /* iOS Update Page Style */
+        /* ---------------------------------------------------------------------- */
+        #updatesModal .modal-content-game {
+            max-width: 600px;
+            max-height: 90%;
+            border: none;
+            box-shadow: none;
+            background-color: transparent;
+        }
+        
+        #updatesModal .page-container {
+            background-color: var(--ios-bg);
+            padding: 0;
+            border-radius: 10px;
+            /* Ensure inner content is styled for iOS look */
+        }
+        
+        .ios-header {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .ios-header h2 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .ios-header p {
+            color: var(--icon-color);
+            font-size: 1.1em;
         }
 
-        /* Settings Specific Styling (used for Updates changelog) */
-        .setting-item {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-bottom: 1px solid var(--button-hover-bg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .setting-item strong {
-            color: var(--new-feature-color);
-        }
-        
-        .upcoming-update {
-            border: 2px dashed var(--icon-color);
+        .ios-section {
+            background-color: var(--ios-card-bg);
+            margin: 15px 0;
             padding: 15px;
-            margin-top: 30px;
-            border-radius: 8px;
+            border-radius: 10px;
         }
+        
+        .ios-section h3 {
+            color: white;
+            font-size: 1.2em;
+            border-bottom: 1px solid var(--ios-separator);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .ios-changelog-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--ios-separator);
+        }
+        
+        .ios-changelog-item:last-child {
+            border-bottom: none;
+        }
+        
+        .ios-version-title {
+            color: var(--ios-blue);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .ios-description {
+            color: var(--text-color);
+            font-size: 0.95em;
+        }
+
+        #downgrade-in-updates {
+            display: block;
+            background-color: var(--ios-red);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 90%;
+            max-width: 400px;
+            margin: 20px auto;
+            transition: background-color 0.2s;
+        }
+        
+        #downgrade-in-updates:hover {
+            background-color: #cc0000;
+        }
+        /* ---------------------------------------------------------------------- */
+
 
         /* Draggable/Movable Modal (Bookmarklet only) */
         .modal-movable {
@@ -398,17 +451,7 @@
             margin-top: 5px;
         }
 
-        /* Links Page Styling */
-        .link-item a {
-            color: #ff9800; /* Orange link color */
-            text-decoration: none;
-            word-wrap: break-word;
-        }
-        .link-item a:hover {
-            text-decoration: underline;
-        }
-
-        /* History Flooder Button */
+        /* Settings Flooder Button */
         #history-flood-button {
             background-color: var(--new-feature-color);
             color: white;
@@ -423,7 +466,16 @@
         #history-flood-button:hover {
             background-color: #0097a7;
         }
-
+        
+        /* Links Page Styling */
+        .link-item a {
+            color: #ff9800;
+            text-decoration: none;
+            word-wrap: break-word;
+        }
+        .link-item a:hover {
+            text-decoration: underline;
+        }
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -433,6 +485,8 @@
             .game-icon { font-size: 2.5em; }
             .modal-movable { width: 95%; height: 90%; }
             #update-button-container { top: 10px; right: 10px; }
+            
+            .ios-header h2 { font-size: 2em; }
         }
     </style>
 </head>
@@ -549,12 +603,12 @@
                 <p>Click the code below to **copy** it. Then, manually create a new bookmark in your browser and paste the code into the URL field.</p>
                 
                 <div class="bookmark-item">
-                    <strong>Cloaker (Change Title/Icon) <span style="color: var(--new-feature-color);">(New)</span></strong>
+                    <strong>Cloaker (Change Title/Icon) <span style="color: var(--new-feature-color);">(v1.3.0)</span></strong>
                     <code class="bookmark-link">javascript:document.title='About: Blank';var link=document.querySelector("link[rel*='icon']");if(link){link.href='data:image/x-icon;base64,AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';}else{var link=document.createElement('link');link.rel='shortcut icon';link.href='data:image/x-icon;base64,AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';document.getElementsByTagName('head')[0].appendChild(link);}void(0)</code>
                 </div>
 
                 <div class="bookmark-item">
-                    <strong>History Flooder (Adds 100 fake entries) <span style="color: var(--new-feature-color);">(New)</span></strong>
+                    <strong>History Flooder (Adds 100 fake entries) <span style="color: var(--new-feature-color);">(v1.3.0)</span></strong>
                     <code class="bookmark-link">javascript:for(var i=0;i<100;i++){history.pushState(0,0,'/fake-history-entry-'+i);}alert('100 fake history entries added. Your real history is now harder to find.');void(0)</code>
                 </div>
 
@@ -586,32 +640,42 @@
         <div class="modal-content-game">
             <span class="close-button" onclick="closeModal('updatesModal')">&times;</span>
             <div class="page-container">
-                <h3>✨ Updates & Changelog</h3>
-                
-                <div class="setting-item">
-                    <strong>Version 1.3.0 (Latest)</strong>
-                    <span>**MAJOR!** Added History Flooder tool in settings. New Cloaker and History Flooder bookmarklets added.</span>
+                <div class="ios-header">
+                    <h2>Software Update</h2>
+                    <p>gamesunblocked67</p>
                 </div>
                 
-                <div class="setting-item">
-                    <strong>Version 1.2.0</strong>
-                    <span>Added a Clicker Game. Implemented full update/downgrade system. Fixed scrolling and grid issues.</span>
+                <div class="ios-section">
+                    <h3>Current Version</h3>
+                    <div class="ios-changelog-item">
+                        <span class="ios-version-title" id="ios-current-version">v1.3.0</span>
+                        <span class="ios-description">The latest version provides new utility tools and fixes for the core framework.</span>
+                    </div>
                 </div>
 
-                <div class="setting-item">
-                    <strong>Version 1.1.1</strong>
-                    <span>Title changed to "gamesunblocked67". Menu moved to the top. Random welcome messages implemented.</span>
+                <div class="ios-section">
+                    <h3>Version History</h3>
+                    
+                    <div class="ios-changelog-item">
+                        <span class="ios-version-title">v1.3.0</span>
+                        <span class="ios-description">**MAJOR!** Added History Flooder tool in settings. New Cloaker and History Flooder bookmarklets added. iOS-style updates page.</span>
+                    </div>
+                    
+                    <div class="ios-changelog-item">
+                        <span class="ios-version-title">v1.2.0</span>
+                        <span class="ios-description">Added a Clicker Game. Implemented full update/downgrade system. Fixed scrolling and grid issues.</span>
+                    </div>
+
+                    <div class="ios-changelog-item" style="border-bottom: none;">
+                        <span class="ios-version-title">v1.1.1 (Initial)</span>
+                        <span class="ios-description">Title changed to "gamesunblocked67". Initial game library and base functions.</span>
+                    </div>
                 </div>
                 
                 <button id="downgrade-in-updates" onclick="initiateDowngrade()">
                     <span id="downgrade-text">Downgrade to v1.2.0</span>
                 </button>
 
-                <div class="setting-item">
-                    <p style="color: var(--icon-color); margin-top: 20px;">
-                        *Games like Retro Bowl must be opened in a new tab because their owners block embedding.
-                    </p>
-                </div>
             </div>
         </div>
     </div>
@@ -676,15 +740,16 @@
         // JavaScript for all dynamic functionality
         
         // --- CONFIGURATION & INITIALIZATION ---
-        const CURRENT_VERSION = "1.3.0"; // The actual version of the code in this file
-        const PREVIOUS_VERSION = "1.2.0";     // The version the update is from
+        const CURRENT_VERSION = "1.3.0"; 
+        const V120 = "1.2.0";
+        const V111 = "1.1.1";
         const LOCAL_STORAGE_KEY = 'gamesunblocked_version';
 
         // 1. Check/Set Local Version
         let storedVersion = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!storedVersion) {
-            // First time loading, set the initial version (or the starting version for the update)
-            storedVersion = PREVIOUS_VERSION; // Start at the previous version to prompt update
+            // If first time loading this code base, start at v1.2.0 to prompt update to v1.3.0
+            storedVersion = V120; 
             localStorage.setItem(LOCAL_STORAGE_KEY, storedVersion);
         }
         
@@ -706,12 +771,12 @@
         // --- FEATURE LOGIC ---
         
         function floodHistory(count) {
-            // Only runs if the feature is present (i.e., v1.3.0 or higher)
-            if (compareVersions(storedVersion, "1.3.0") < 0) return; 
+            if (compareVersions(storedVersion, "1.3.0") < 0) {
+                alert('History Flooder is only available in v1.3.0 and newer. Please update.');
+                return;
+            }
             
             for (let i = 0; i < count; i++) {
-                // Use history.pushState to add entries without loading a new page
-                // The URL is arbitrary and can be anything on the current domain
                 history.pushState(null, '', `/temp-history-item-${i}`);
             }
             alert(`${count} fake history entries have been added. Your real history is now harder to find.`);
@@ -753,13 +818,11 @@
                 } else if (progress <= 95) {
                     updateMessage.textContent = isDowngrade ? 'Cleaning up new version files...' : 'Finalizing configuration...';
                 } else {
-                    // Simulation complete
                     clearInterval(updateInterval);
                     const action = isDowngrade ? 'Downgrade' : 'Installation';
                     updateMessage.textContent = `${action} complete! Reloading...`;
                     
                     setTimeout(() => {
-                        // Apply the version change and reload
                         localStorage.setItem(LOCAL_STORAGE_KEY, targetVersion);
                         window.location.reload();
                     }, 1000);
@@ -768,16 +831,27 @@
         }
 
         function initiateUpdate() {
-            // Hide update button immediately
             document.getElementById('update-button').style.display = 'none';
             runSimulation(CURRENT_VERSION, false);
         }
         
         function initiateDowngrade() {
-             // Hide downgrade button during process
+             const currentStoredVersion = localStorage.getItem(LOCAL_STORAGE_KEY);
+             let targetVersion;
+
+             if (compareVersions(currentStoredVersion, CURRENT_VERSION) === 0) {
+                // If on v1.3.0, downgrade to v1.2.0
+                targetVersion = V120;
+             } else if (compareVersions(currentStoredVersion, V120) === 0) {
+                // If on v1.2.0, downgrade to v1.1.1
+                targetVersion = V111;
+             } else {
+                 // Already at v1.1.1 or lower, stop
+                 alert('Cannot downgrade further than v1.1.1.');
+                 return;
+             }
+             
              document.getElementById('downgrade-in-updates').style.display = 'none';
-             // Downgrade to the version immediately preceding the current stored version
-             const targetVersion = (storedVersion === CURRENT_VERSION) ? PREVIOUS_VERSION : '1.1.1';
              runSimulation(targetVersion, true);
         }
 
@@ -794,25 +868,34 @@
             `;
             const clickerExists = gameGrid.querySelector('[data-modal="clickerModal"]');
 
-            if (compareVersions(version, "1.2.0") >= 0) {
+            if (compareVersions(version, V120) >= 0) {
                 if (!clickerExists) gameGrid.insertAdjacentHTML('beforeend', clickerHTML);
             } else {
                 if (clickerExists) clickerExists.remove();
             }
             
-            // Update Downgrade Button State
+            // Update Downgrade Button State and Text
             const downgradeButton = document.getElementById('downgrade-in-updates');
+            const downgradeText = document.getElementById('downgrade-text');
+            
             if (downgradeButton) {
-                 if (version === CURRENT_VERSION) {
+                 if (compareVersions(version, CURRENT_VERSION) === 0) {
+                    // Current version is v1.3.0
                     downgradeButton.style.display = 'block';
-                    document.getElementById('downgrade-text').textContent = `Downgrade to v${PREVIOUS_VERSION}`;
-                } else if (version === PREVIOUS_VERSION) {
+                    downgradeText.textContent = `Downgrade to v${V120}`;
+                    document.getElementById('ios-current-version').textContent = `v${CURRENT_VERSION}`;
+                } else if (compareVersions(version, V120) === 0) {
+                    // Current version is v1.2.0
                     downgradeButton.style.display = 'block';
-                    document.getElementById('downgrade-text').textContent = 'Downgrade to v1.1.1';
-                } else if (version === '1.1.1') {
-                    downgradeButton.style.display = 'none';
-                } else {
-                     downgradeButton.style.display = 'none';
+                    downgradeText.textContent = `Downgrade to v${V111}`;
+                    document.getElementById('ios-current-version').textContent = `v${V120}`;
+                } else if (compareVersions(version, V111) === 0) {
+                    // Current version is v1.1.1
+                    downgradeButton.style.display = 'block';
+                    downgradeText.textContent = `v${V111} (Cannot Downgrade Further)`;
+                    downgradeButton.disabled = true;
+                    downgradeButton.style.backgroundColor = '#48484a'; // Gray out
+                    document.getElementById('ios-current-version').textContent = `v${V111}`;
                 }
             }
 
@@ -820,7 +903,7 @@
             // Update the version display in settings
             document.getElementById('current-version-display').textContent = storedVersion;
 
-            // Re-attach event listeners to all buttons (including added/removed ones)
+            // Re-attach event listeners to all buttons
             attachEventListeners();
         }
 
@@ -829,7 +912,7 @@
         // 1. Check for Update and Display Button
         if (isUpdateAvailable) {
             document.getElementById('update-button').style.display = 'block';
-            document.getElementById('current-version-display').textContent = storedVersion; // Show old version in settings
+            document.getElementById('current-version-display').textContent = storedVersion;
         } else {
             // If up to date, display the content based on the stored version
             displayContentByVersion(storedVersion);
@@ -870,18 +953,16 @@
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
-            document.body.style.overflow = 'auto'; // Re-enable body scrolling
+            document.body.style.overflow = 'auto';
         }
 
-        // 5. Attach event listeners to all buttons/links
+        // 5. Attach event listeners
         function attachEventListeners() {
             document.querySelectorAll('.game-button, .menu-link').forEach(button => {
-                // Remove existing listener to prevent duplicates on reload/new content
                 button.removeEventListener('click', handleButtonClick);
                 button.addEventListener('click', handleButtonClick);
             });
             
-            // Re-attach bookmarklet copy handlers (important for the new content)
             document.querySelectorAll('.bookmark-link').forEach(codeElement => {
                 codeElement.removeEventListener('click', handleBookmarkCopy);
                 codeElement.addEventListener('click', handleBookmarkCopy);
@@ -889,11 +970,9 @@
         }
         
         function handleButtonClick(e) {
-             // If the button has an external link, let the browser handle it (open in new tab)
             if (this.classList.contains('external')) {
                 return; 
             }
-            // Otherwise, open the modal
             e.preventDefault();
             const modalId = this.getAttribute('data-modal');
             if (modalId) {
@@ -938,7 +1017,7 @@
             starsContainer.style.display = enabled ? 'block' : 'none';
         }
 
-        // 7. Draggable Modal (Bookmarklet only - from previous version)
+        // 7. Draggable Modal (Bookmarklet only)
         var dragItem = document.getElementById("bookmarkletWindow");
         var container = document.getElementById("bookmarkletHeader");
 
