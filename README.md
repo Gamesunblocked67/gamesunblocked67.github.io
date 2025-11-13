@@ -23,6 +23,7 @@
             --update-color: #ff5722; /* Deep Orange for update button */
             --downgrade-color: #f44336; /* Red for downgrade button */
             --new-feature-color: #00bcd4; /* Cyan for new features */
+            --beta-color: #fdd835; /* Yellow/Gold for beta */
             
             /* iOS Style Colors */
             --ios-bg: #1c1c1e;
@@ -30,17 +31,8 @@
             --ios-separator: #48484a;
             --ios-blue: #0a84ff; 
             --ios-red: #ff3b30;
-            
-            /* Light Theme Variables (Default is Dark) */
-            --bg-main-light: #f0f0f5;
-            --bg-grid-light: #ffffff;
-            --bg-button-light: #e0e0e0;
-            --text-dark: #333333;
-            --icon-dark: #666666;
-            --modal-bg-light: rgba(255, 255, 255, 0.95);
         }
 
-        /* --- Global Body & Dark Theme Setup --- */
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0;
@@ -56,58 +48,6 @@
             align-items: center;
             position: relative;
         }
-
-        /* --- Light Theme Overrides --- */
-        body.light-theme {
-            background: var(--bg-main-light);
-            color: var(--text-dark);
-        }
-        body.light-theme .container {
-            background-color: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
-            border-color: #cccccc;
-        }
-        body.light-theme .title {
-            color: var(--text-dark);
-        }
-        body.light-theme .subtitle {
-            color: var(--icon-dark);
-        }
-        body.light-theme .menu-link {
-            color: var(--icon-dark);
-            border-color: #dddddd;
-        }
-        body.light-theme .menu-link:hover {
-            color: var(--text-dark);
-        }
-        body.light-theme .game-grid {
-            background-color: var(--bg-grid-light);
-        }
-        body.light-theme .game-button {
-            background-color: var(--bg-button-light);
-            color: var(--text-dark);
-        }
-        body.light-theme .game-button:hover {
-            background-color: #ffffff;
-            border-color: #4a148c;
-        }
-        body.light-theme .modal-movable,
-        body.light-theme .page-container {
-             background-color: var(--bg-grid-light);
-             color: var(--text-dark);
-        }
-        body.light-theme .modal-header {
-             background-color: var(--bg-button-light);
-             color: var(--text-dark);
-        }
-        body.light-theme .bookmark-item {
-             background-color: var(--bg-button-light);
-        }
-        body.light-theme .modal-content-game {
-            background-color: var(--modal-bg-light);
-        }
-        /* iOS Modal is intentionally dark, no major light theme changes needed there */
-
 
         /* Particle Effect */
         .stars {
@@ -165,6 +105,24 @@
             70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
         }
+        
+        /* Beta Button Style */
+        #update-button.beta {
+            background-color: var(--beta-color);
+            color: black;
+            animation: pulse-beta 1.5s infinite;
+        }
+        
+        #update-button.beta:hover {
+            background-color: #ffc107;
+        }
+        
+        @keyframes pulse-beta {
+            0% { box-shadow: 0 0 0 0 rgba(253, 216, 53, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(253, 216, 53, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(253, 216, 53, 0); }
+        }
+
 
         /* Main Container */
         .container {
@@ -334,6 +292,15 @@
         #updateProgressModal.downgrading #update-progress-bar {
             background-color: var(--downgrade-color);
         }
+        
+        /* Change color for beta simulation */
+        #updateProgressModal.beta-upgrade .modal-content-update {
+            border-color: var(--beta-color);
+        }
+        
+        #updateProgressModal.beta-upgrade #update-progress-bar {
+            background-color: var(--beta-color);
+        }
 
         .game-iframe {
             width: 100%;
@@ -367,6 +334,7 @@
             background-color: var(--ios-bg);
             padding: 0;
             border-radius: 10px;
+            /* Ensure inner content is styled for iOS look */
         }
         
         .ios-header {
@@ -440,6 +408,26 @@
         #downgrade-in-updates:hover {
             background-color: #cc0000;
         }
+        
+        /* Beta upgrade button style in updates modal */
+        #upgrade-in-updates {
+            display: none;
+            background-color: var(--beta-color);
+            color: black;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 90%;
+            max-width: 400px;
+            margin: 20px auto;
+            transition: background-color 0.2s;
+        }
+        
+        #upgrade-in-updates:hover {
+            background-color: #ffc107;
+        }
         /* ---------------------------------------------------------------------- */
 
 
@@ -473,11 +461,6 @@
             justify-content: space-between;
             align-items: center;
         }
-        
-        body.light-theme .modal-header {
-            color: var(--text-dark);
-        }
-
 
         .modal-title {
             font-weight: bold;
@@ -517,7 +500,7 @@
         }
 
         /* Settings Flooder Button */
-        #history-flood-button, #tab-cloak-button {
+        #history-flood-button {
             background-color: var(--new-feature-color);
             color: white;
             padding: 10px 15px;
@@ -528,8 +511,20 @@
             transition: background-color 0.2s;
         }
         
-        #history-flood-button:hover, #tab-cloak-button:hover {
+        #history-flood-button:hover {
             background-color: #0097a7;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
         }
         
         /* Links Page Styling */
@@ -540,56 +535,6 @@
         }
         .link-item a:hover {
             text-decoration: underline;
-        }
-        
-        /* Switch/Toggle Styling */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 20px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: var(--ios-blue); /* iOS-style active color */
-        }
-
-        input:focus + .slider {
-            box-shadow: 0 0 1px var(--ios-blue);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(20px);
         }
 
         /* Responsive Design */
@@ -605,13 +550,14 @@
         }
     </style>
 </head>
-<body class="dark-theme">
+<body>
 
     <div class="stars"></div>
 
     <div id="update-button-container">
+        <!-- Button text and class determined by JS on load -->
         <button id="update-button" onclick="initiateUpdate()">
-            Update to v1.4.0
+            
         </button>
     </div>
 
@@ -656,25 +602,14 @@
                 <span class="game-icon">🐻</span>
                 <span class="game-title">FNAF 1 (Embed)</span>
             </a>
-            
-            <a href="#" class="game-button" data-modal="paperIoModal">
-                <span class="game-icon">🔲</span>
-                <span class="game-title">Paper.io 2</span>
-            </a>
-            <a href="#" class="game-button" data-modal="slopeModal">
-                <span class="game-icon">🎢</span>
-                <span class="game-title">Slope</span>
-            </a>
-            <a href="#" class="game-button" data-modal="happyWheelsModal">
-                <span class="game-icon">🩸</span>
-                <span class="game-title">Happy Wheels</span>
-            </a>
-        </div>
+            <!-- Clicker Game (Added in v1.2.0, remains) -->
+            <!-- Subway Surfers (Added in v1.4.0, managed by JS) -->
+            </div>
     </div>
 
     <div id="updateProgressModal" class="modal">
         <div class="modal-content-update">
-            <h3 id="progress-title">Downloading Update v1.4.0...</h3>
+            <h3 id="progress-title">...</h3>
             <p id="update-message">Preparing files...</p>
             <div class="update-bar-container">
                 <div id="update-progress-bar"></div>
@@ -682,6 +617,7 @@
         </div>
     </div>
 
+    <!-- Game Modals -->
     <div id="gdLiteModal" class="modal">
         <div class="modal-content-game">
             <span class="close-button" onclick="closeModal('gdLiteModal')">&times;</span>
@@ -718,23 +654,11 @@
             <iframe class="game-iframe" src="https://selenite.cc/resources/semag/clicker/index.html" allowfullscreen></iframe>
         </div>
     </div>
-    
-    <div id="paperIoModal" class="modal">
+    <div id="subwaySurfersModal" class="modal">
         <div class="modal-content-game">
-            <span class="close-button" onclick="closeModal('paperIoModal')">&times;</span>
-            <iframe class="game-iframe" src="https://paperio.fun/" allowfullscreen></iframe>
-        </div>
-    </div>
-    <div id="slopeModal" class="modal">
-        <div class="modal-content-game">
-            <span class="close-button" onclick="closeModal('slopeModal')">&times;</span>
-            <iframe class="game-iframe" src="https://www.mathplayground.com/gameframe/slope.html" allowfullscreen></iframe>
-        </div>
-    </div>
-    <div id="happyWheelsModal" class="modal">
-        <div class="modal-content-game">
-            <span class="close-button" onclick="closeModal('happyWheelsModal')">&times;</span>
-            <iframe class="game-iframe" src="https://slope-game.github.io/happy-wheels/" allowfullscreen></iframe>
+            <span class="close-button" onclick="closeModal('subwaySurfersModal')">&times;</span>
+            <!-- Placeholder URL for new v1.4 game -->
+            <iframe class="game-iframe" src="https://example.com/subway-surfers" allowfullscreen></iframe>
         </div>
     </div>
 
@@ -750,34 +674,23 @@
                 <p>Click the code below to **copy** it. Then, manually create a new bookmark in your browser and paste the code into the URL field.</p>
                 
                 <div class="bookmark-item">
-                    <strong>Cloaker (Change Title/Icon) <span style="color: var(--new-feature-color);">(v1.3.0)</span></strong>
+                    <strong>Cloaker (Change Title/Icon) <span style="color: var(--new-feature-color);">(v1.3.0+)</span></strong>
                     <code class="bookmark-link">javascript:document.title='About: Blank';var link=document.querySelector("link[rel*='icon']");if(link){link.href='data:image/x-icon;base64,AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';}else{var link=document.createElement('link');link.rel='shortcut icon';link.href='data:image/x-icon;base64,AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';document.getElementsByTagName('head')[0].appendChild(link);}void(0)</code>
+                </div>
+                
+                <div class="bookmark-item" data-version="1.4.0">
+                    <strong>School Bypass (Simulated) <span style="color: var(--new-feature-color);">(v1.4.0)</span></strong>
+                    <code class="bookmark-link">javascript:alert('Warning: Bypasses are only guaranteed to work on older, unpatched systems. Do not trust generic bypass codes. Proceeding to a common exploit...');window.location.href = 'https://www.google.com/search?q=old+school+bypass';void(0)</code>
                 </div>
 
                 <div class="bookmark-item">
-                    <strong>History Flooder (Adds 100 fake entries) <span style="color: var(--new-feature-color);">(v1.3.0)</span></strong>
+                    <strong>History Flooder (Adds 100 fake entries) <span style="color: var(--new-feature-color);">(v1.3.0+)</span></strong>
                     <code class="bookmark-link">javascript:for(var i=0;i<100;i++){history.pushState(0,0,'/fake-history-entry-'+i);}alert('100 fake history entries added. Your real history is now harder to find.');void(0)</code>
                 </div>
 
                 <div class="bookmark-item">
                     <strong>Edit Any Page (Design Mode)</strong>
                     <code class="bookmark-link">javascript:(function(){document.body.contentEditable='true'; document.designMode='on'; void(0);})();</code>
-                </div>
-
-                <div class="bookmark-item">
-                    <strong>Dev Console (Simple Alert)</strong>
-                    <code class="bookmark-link">javascript:alert('Developer console access is typically browser-specific (F12). This is a simple cookie alert.');alert(document.cookie);</code>
-                </div>
-
-                <div class="bookmark-item">
-                    <strong>Mini Browser (iFrame)</strong>
-                    <code class="bookmark-link">javascript:var i=document.createElement("iframe");i.src="https://www.google.com/";i.style.position="fixed";i.style.top="10px";i.style.right="10px";i.style.width="400px";i.style.height="300px";i.style.zIndex="9999";document.body.appendChild(i);void(0);</code>
-                </div>
-
-                <div class="bookmark-item">
-                    <strong>Website Crash Simulation (Loop)</strong>
-                    <p style="color: #FF5722;">⚠️ WARNING: This will intentionally hang the browser tab it is run on. Use with caution!</p>
-                    <code class="bookmark-link">javascript:(function(){while(true){}})();</code>
                 </div>
             </div>
         </div>
@@ -796,33 +709,42 @@
                     <h3>Current Version</h3>
                     <div class="ios-changelog-item">
                         <span class="ios-version-title" id="ios-current-version">v1.4.0</span>
-                        <span class="ios-description">The latest version provides new games, utility tools, and full theme support.</span>
+                        <span class="ios-description" id="ios-current-description">The latest version provides new games, a simplified cloaker, and improved settings.</span>
                     </div>
                 </div>
 
                 <div class="ios-section">
                     <h3>Version History</h3>
                     
-                    <div class="ios-changelog-item">
-                        <span class="ios-version-title">v1.4.0</span>
-                        <span class="ios-description">**NEW GAMES!** Added Paper.io 2, Slope, & Happy Wheels. Added **Dark/Light Theme** setting and **Tab Cloaker** setting. Fixed update simulation visibility.</span>
+                    <div class="ios-changelog-item" data-version="1.5.0-beta">
+                        <span class="ios-version-title" style="color: var(--beta-color);">v1.5.0 (Beta) - New Look!</span>
+                        <span class="ios-description">**MAJOR!** Completely redesigned UI. Optimized for mobile. **Note: You must sub to cursedgamer2 to fully unlock features.**</span>
                     </div>
 
-                    <div class="ios-changelog-item">
-                        <span class="ios-version-title">v1.3.0</span>
-                        <span class="ios-description">Added History Flooder tool in settings. New Cloaker and History Flooder bookmarklets added. Updates page redesigned to iOS style.</span>
+                    <div class="ios-changelog-item" data-version="1.4.0">
+                        <span class="ios-version-title">v1.4.0</span>
+                        <span class="ios-description">**NEW GAME!** Added Subway Surfers. New School Bypass bookmarklet. Conceptual 'Pro Mode' added to settings.</span>
                     </div>
                     
-                    <div class="ios-changelog-item">
+                    <div class="ios-changelog-item" data-version="1.3.0">
+                        <span class="ios-version-title">v1.3.0</span>
+                        <span class="ios-description">**MAJOR!** Added History Flooder tool in settings. New Cloaker and History Flooder bookmarklets added. iOS-style updates page.</span>
+                    </div>
+                    
+                    <div class="ios-changelog-item" data-version="1.2.0">
                         <span class="ios-version-title">v1.2.0</span>
                         <span class="ios-description">Added a Clicker Game. Implemented full update/downgrade system. Fixed scrolling and grid issues.</span>
                     </div>
 
-                    <div class="ios-changelog-item" style="border-bottom: none;">
+                    <div class="ios-changelog-item" data-version="1.1.1" style="border-bottom: none;">
                         <span class="ios-version-title">v1.1.1 (Initial)</span>
                         <span class="ios-description">Title changed to "gamesunblocked67". Initial game library and base functions.</span>
                     </div>
                 </div>
+                
+                <button id="upgrade-in-updates" onclick="initiateBetaUpgrade()">
+                    Upgrade to v1.5.0 Beta!
+                </button>
                 
                 <button id="downgrade-in-updates" onclick="initiateDowngrade()">
                     <span id="downgrade-text">Downgrade to v1.3.0</span>
@@ -839,33 +761,25 @@
                 <h3>⚙️ Website Settings</h3>
                 
                 <div class="setting-item">
-                    <label>Dark / Light Theme</label>
-                    <label class="switch">
-                        <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="setting-item">
-                    <label>Tab Cloaker (Google Drive)</label>
-                    <button id="tab-cloak-button" onclick="cloakTab()">
-                        Cloak Tab Now
-                    </button>
-                </div>
-                
-                <div class="setting-item">
                     <label for="particles">Enable Star Particles</label>
-                    <label class="switch">
-                        <input type="checkbox" id="particles" checked onchange="toggleParticles(this.checked)">
-                        <span class="slider"></span>
-                    </label>
+                    <input type="checkbox" id="particles" checked onchange="toggleParticles(this.checked)">
                 </div>
                 
-                <div class="setting-item">
+                <div class="setting-item" data-version="1.4.0-feature">
+                    <label for="pro-mode">Activate Pro Mode (Hidden Games)</label>
+                    <input type="checkbox" id="pro-mode" onchange="alert('Pro Mode activated! Hidden content will appear next session. (Conceptual only)');">
+                </div>
+                
+                <div class="setting-item" data-version="1.3.0-feature">
                     <label>History Flooder (Instant)</label>
                     <button id="history-flood-button" onclick="floodHistory(100)">
                         Flood History (100 Entries)
                     </button>
+                </div>
+                
+                <div class="setting-item">
+                    <label for="theme">Switch to Light Mode (Conceptual)</label>
+                    <input type="checkbox" id="theme" onchange="alert('Light mode feature coming soon! (Conceptual only)');">
                 </div>
                 
                 <div class="setting-item">
@@ -906,16 +820,17 @@
         
         // --- CONFIGURATION & INITIALIZATION ---
         const CURRENT_VERSION = "1.4.0"; 
+        const V150_BETA = "1.5.0";
+        const V140 = "1.4.0";
         const V130 = "1.3.0";
         const V120 = "1.2.0";
         const V111 = "1.1.1";
         const LOCAL_STORAGE_KEY = 'gamesunblocked_version';
-        const LOCAL_STORAGE_THEME = 'gamesunblocked_theme';
 
         // 1. Check/Set Local Version
         let storedVersion = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!storedVersion) {
-            // First time loading this code base, start at V130 to prompt update to v1.4.0
+            // New user starts at V1.3.0 to trigger an immediate update to V1.4.0
             storedVersion = V130; 
             localStorage.setItem(LOCAL_STORAGE_KEY, storedVersion);
         }
@@ -933,10 +848,402 @@
             return 0;
         }
 
-        const isUpdateAvailable = (compareVersions(CURRENT_VERSION, storedVersion) === 1);
         
-        // --- V1.4.0 FEATURE LOGIC ---
+        // --- FEATURE LOGIC ---
+        
+        function floodHistory(count) {
+            if (compareVersions(storedVersion, V130) < 0) {
+                alert('History Flooder is only available in v1.3.0 and newer. Please update.');
+                return;
+            }
+            
+            for (let i = 0; i < count; i++) {
+                history.pushState(null, '', `/temp-history-item-${i}`);
+            }
+            alert(`${count} fake history entries have been added. Your real history is now harder to find.`);
+            
+            // Push one final state to revert the current URL back to the base if desired
+            history.pushState(null, '', window.location.pathname);
+        }
 
-        function cloakTab() {
-            // Google Drive icon base64
-            const DRIVE_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAAB9ElEQVR4nO2Vy08CQRCGn5A2F2qUoqEIGoT4wY960Y8Cg1+hIahS0S8i+o/o04f0J0R/kCgJcZJgIgpRkR/S1jQx09S7C+92N+Mzs9nN/LpP5mFmZ7kX/k4iA2h11K2S40Wj+h3f2l4CgqM7wFwQj7H/WfE4tL3+2eD5K+W+n+X8M2mP+X4J/j+7wJjQoOqKz7GfT0c5rFzS0wV/m06jM/zF4c1kS9+XzPzD4M3mD/4uO+M+n+hN4M3mD+GfTy+P/E7yX/mN1P8M3mD/2+W0l5/eE+jN5w/8r5f8Jfp5v/V9C3mR/b2c6Gv+b3mF8f5nJ77d0FzG/W+t5QyqX+c0/D+j/eH6F+t5BfNfpf7P9gP9C/3O5w/cZ7Qf5xG53f/f5tL3h7c/pX+N9/H119/d3Y+6X+w/lP9S/9h+C/lV+P50f4L+x/vP3e29v/u7s/fL/Qf/j+R/lX+5/3H/94f7z/0f/B9+X2z+3u3t+6X+7/wX9b/7fVf9K/4/mX+S/8H/h/Gf1v/l9m/1P9l/uP7z/3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3
+
+        // --- UPDATE/DOWNGRADE SYSTEM LOGIC ---
+        
+        function runSimulation(targetVersion, isDowngrade, isBeta) {
+            const updateModal = document.getElementById('updateProgressModal');
+            const progressBar = document.getElementById('update-progress-bar');
+            const updateMessage = document.getElementById('update-message');
+            const progressTitle = document.getElementById('progress-title');
+            
+            updateModal.classList.toggle('downgrading', isDowngrade);
+            updateModal.classList.toggle('beta-upgrade', isBeta);
+            
+            progressTitle.textContent = isDowngrade ? 
+                `Reverting to v${targetVersion}...` : 
+                (isBeta ? `Upgrading to v${targetVersion} Beta...` : `Downloading Update v${targetVersion}...`);
+            
+            // Reset progress bar
+            progressBar.style.width = '0%';
+            openModal('updateProgressModal');
+            
+            let progress = 0;
+            const intervalTime = 100; 
+
+            const updateInterval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = `${progress}%`;
+
+                if (progress <= 30) {
+                    updateMessage.textContent = isDowngrade ? 'Reversing changes...' : 'Downloading new files...';
+                } else if (progress <= 70) {
+                    updateMessage.textContent = isDowngrade ? 'Restoring previous version state...' : 'Installing core features...';
+                } else if (progress <= 95) {
+                    updateMessage.textContent = isDowngrade ? 'Cleaning up new version files...' : 'Finalizing configuration...';
+                } else {
+                    clearInterval(updateInterval);
+                    const action = isDowngrade ? 'Downgrade' : (isBeta ? 'Beta Upgrade' : 'Installation');
+                    updateMessage.textContent = `${action} complete! Reloading...`;
+                    
+                    setTimeout(() => {
+                        localStorage.setItem(LOCAL_STORAGE_KEY, targetVersion);
+                        
+                        // If upgrading to 1.5.0 Beta, redirect to index.html for the new UI
+                        if (targetVersion === V150_BETA) {
+                            window.location.href = 'index.html';
+                        } else {
+                            window.location.reload();
+                        }
+                    }, 1000);
+                }
+            }, intervalTime);
+        }
+
+        function initiateUpdate() {
+            const updateButton = document.getElementById('update-button');
+            updateButton.style.display = 'none';
+
+            if (compareVersions(storedVersion, CURRENT_VERSION) < 0) {
+                // Regular update to 1.4.0
+                runSimulation(CURRENT_VERSION, false, false);
+            } else if (compareVersions(storedVersion, V150_BETA) < 0) {
+                // Upgrade to 1.5.0 Beta
+                runSimulation(V150_BETA, false, true);
+            }
+        }
+        
+        function initiateBetaUpgrade() {
+            closeModal('updatesModal');
+            runSimulation(V150_BETA, false, true);
+        }
+        
+        function initiateDowngrade() {
+             const currentStoredVersion = localStorage.getItem(LOCAL_STORAGE_KEY) || V130;
+             let targetVersion;
+
+             if (compareVersions(currentStoredVersion, V140) === 0) {
+                targetVersion = V130;
+             } else if (compareVersions(currentStoredVersion, V130) === 0) {
+                targetVersion = V120;
+             } else if (compareVersions(currentStoredVersion, V120) === 0) {
+                targetVersion = V111;
+             } else {
+                 // Already at v1.1.1 or lower, stop
+                 alert('Cannot downgrade further than v1.1.1.');
+                 return;
+             }
+             
+             document.getElementById('downgrade-in-updates').style.display = 'none';
+             runSimulation(targetVersion, true, false);
+        }
+
+
+        function displayContentByVersion(version) {
+            const gameGrid = document.getElementById('game-grid');
+            const downgradeButton = document.getElementById('downgrade-in-updates');
+            const upgradeButton = document.getElementById('upgrade-in-updates');
+            const updateButtonTop = document.getElementById('update-button');
+            const downgradeText = document.getElementById('downgrade-text');
+            const currentVersionDisplay = document.getElementById('current-version-display');
+            
+            // --- GAMES ---
+            const clickerHTML = `
+                <a href="#" class="game-button" data-modal="clickerModal">
+                    <span class="game-icon">💰</span>
+                    <span class="game-title">Clicker Game</span>
+                </a>
+            `;
+            const subwaySurfersHTML = `
+                <a href="#" class="game-button" data-modal="subwaySurfersModal" data-version="1.4.0">
+                    <span class="game-icon">🛹</span>
+                    <span class="game-title">Subway Surfers</span>
+                </a>
+            `;
+            
+            // Clear or manage dynamic content based on version
+            const dynamicGames = gameGrid.querySelectorAll('[data-version]');
+            dynamicGames.forEach(game => game.remove());
+            
+            if (compareVersions(version, V120) >= 0) {
+                // Ensure Clicker is present if v1.2.0 or higher
+                if (!gameGrid.querySelector('[data-modal="clickerModal"]')) {
+                    gameGrid.insertAdjacentHTML('beforeend', clickerHTML);
+                }
+            } else {
+                gameGrid.querySelector('[data-modal="clickerModal"]')?.remove();
+            }
+
+            if (compareVersions(version, V140) >= 0) {
+                gameGrid.insertAdjacentHTML('beforeend', subwaySurfersHTML);
+            }
+
+            // --- SETTINGS (Hide/Show features) ---
+            document.querySelectorAll('[data-version="1.3.0-feature"]').forEach(el => {
+                el.style.display = compareVersions(version, V130) >= 0 ? 'flex' : 'none';
+            });
+            document.querySelectorAll('[data-version="1.4.0-feature"]').forEach(el => {
+                el.style.display = compareVersions(version, V140) >= 0 ? 'flex' : 'none';
+            });
+            
+            // --- UPDATE BUTTON & MODAL LOGIC ---
+            
+            currentVersionDisplay.textContent = version;
+
+            if (compareVersions(version, V140) < 0) {
+                // Needs to update to 1.4.0
+                updateButtonTop.style.display = 'block';
+                updateButtonTop.classList.remove('beta');
+                updateButtonTop.textContent = `Update to v${V140}`;
+                upgradeButton.style.display = 'none';
+                downgradeButton.style.display = 'none'; // Only shows after being updated
+                document.getElementById('ios-current-version').textContent = `v${version}`;
+                document.getElementById('ios-current-description').textContent = `Update available to v${V140} (New Games!)`;
+            } else if (compareVersions(version, V140) === 0) {
+                // On 1.4.0, ready for 1.5.0 Beta
+                updateButtonTop.style.display = 'block';
+                updateButtonTop.classList.add('beta');
+                updateButtonTop.textContent = `Upgrade to v${V150_BETA} Beta!`;
+                
+                // Downgrade button targets 1.3.0
+                downgradeButton.style.display = 'block';
+                downgradeButton.disabled = false;
+                downgradeButton.style.backgroundColor = varColor('ios-red');
+                downgradeText.textContent = `Downgrade to v${V130}`;
+                
+                // Upgrade button shows in updates modal
+                upgradeButton.style.display = 'block';
+                
+                document.getElementById('ios-current-version').textContent = `v${V140}`;
+                document.getElementById('ios-current-description').textContent = `The latest version provides new games, a simplified cloaker, and improved settings.`;
+            } else if (compareVersions(version, V150_BETA) === 0) {
+                // Should never happen in index-v14.html if navigation logic is correct, but handles the state:
+                updateButtonTop.style.display = 'none';
+                downgradeButton.style.display = 'block';
+                downgradeText.textContent = `Downgrade to v${V140}`;
+                upgradeButton.style.display = 'none';
+                document.getElementById('ios-current-version').textContent = `v${V150_BETA} Beta`;
+            }
+            
+            // Final Downrgade Check (v1.1.1)
+            if (compareVersions(version, V111) === 0) {
+                downgradeButton.disabled = true;
+                downgradeButton.style.backgroundColor = '#48484a'; // Gray out
+                downgradeText.textContent = `v${V111} (Cannot Downgrade Further)`;
+                updateButtonTop.style.display = 'block'; // Still allow upgrade if one is available
+                document.getElementById('ios-current-description').textContent = `The base version. Update available to v${V140}.`;
+            }
+
+
+            // --- BOOKMARKLET V1.4.0 ---
+            document.querySelectorAll('[data-version="1.4.0"]').forEach(el => {
+                 el.style.display = compareVersions(version, V140) >= 0 ? 'block' : 'none';
+            });
+
+
+            // Re-attach event listeners to all buttons
+            attachEventListeners();
+        }
+
+        // Helper function to get CSS variable color
+        function varColor(name) {
+             const style = getComputedStyle(document.documentElement);
+             return style.getPropertyValue(`--${name}`).trim();
+        }
+
+
+        // --- CORE PAGE LOGIC ---
+
+        // 1. Initial Version Check and Display
+        if (storedVersion === V150_BETA) {
+             // If local storage says 1.5.0 Beta, redirect to the beta page (index.html)
+             window.location.href = 'index.html';
+        } else {
+             displayContentByVersion(storedVersion);
+        }
+        
+        // 2. Random Subtitle Message
+        const SUBTITLES = [
+            "hi", 
+            "6 7", 
+            "your gateway to fun", 
+            "sub to my channel (shahir2tuff) and make some of your own"
+        ];
+        const subtitleElement = document.querySelector('.subtitle');
+        const randomIndex = Math.floor(Math.random() * SUBTITLES.length);
+        subtitleElement.textContent = SUBTITLES[randomIndex];
+
+
+        // 3. Particle Effect 
+        const starsContainer = document.querySelector('.stars');
+        const numStars = 70; 
+
+        for (let i = 0; i < numStars; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = star.style.height = `${Math.random() * 3 + 1}px`;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDuration = `${Math.random() * 5 + 3}s`;
+            star.style.animationDelay = `${Math.random() * 5}s`;
+            starsContainer.appendChild(star);
+        }
+
+        // 4. Modal Logic (Open/Close)
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // 5. Attach event listeners
+        function attachEventListeners() {
+            document.querySelectorAll('.game-button, .menu-link').forEach(button => {
+                button.removeEventListener('click', handleButtonClick);
+                button.addEventListener('click', handleButtonClick);
+            });
+            
+            document.querySelectorAll('.bookmark-link').forEach(codeElement => {
+                codeElement.removeEventListener('click', handleBookmarkCopy);
+                codeElement.addEventListener('click', handleBookmarkCopy);
+            });
+        }
+        
+        function handleButtonClick(e) {
+            if (this.classList.contains('external')) {
+                return; 
+            }
+            e.preventDefault();
+            const modalId = this.getAttribute('data-modal');
+            if (modalId) {
+                openModal(modalId);
+            }
+        }
+        
+        function handleBookmarkCopy() {
+            let codeToCopy = this.textContent.trim();
+                
+            if (!codeToCopy.startsWith('javascript:')) {
+                codeToCopy = 'javascript:' + codeToCopy;
+            }
+            
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed; top: 20px; right: 20px; background-color: #4CAF50; 
+                    color: white; padding: 10px 20px; border-radius: 8px; z-index: 1000;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: opacity 0.5s;
+                `;
+                notification.textContent = 'Code Copied!';
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => document.body.removeChild(notification), 500);
+                }, 2000);
+                
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                const message = 'Failed to copy code. Please manually select and copy the text.';
+                console.log(message);
+            });
+        }
+        
+        // Initial call to attach listeners
+        attachEventListeners();
+
+
+        // 6. Settings Toggle
+        function toggleParticles(enabled) {
+            starsContainer.style.display = enabled ? 'block' : 'none';
+        }
+
+        // 7. Draggable Modal (Bookmarklet only)
+        var dragItem = document.getElementById("bookmarkletWindow");
+        var container = document.getElementById("bookmarkletHeader");
+
+        var active = false;
+        var currentX;
+        var currentY;
+        var initialX;
+        var initialY;
+        var xOffset = 0;
+        var yOffset = 0;
+
+        if (dragItem && container) {
+            container.addEventListener("touchstart", dragStart, false);
+            container.addEventListener("touchend", dragEnd, false);
+            container.addEventListener("touchmove", drag, false);
+
+            container.addEventListener("mousedown", dragStart, false);
+            container.addEventListener("mouseup", dragEnd, false);
+            container.addEventListener("mousemove", drag, false);
+
+            function dragStart(e) {
+                if (e.type === "touchstart") {
+                    initialX = e.touches[0].clientX - xOffset;
+                    initialY = e.touches[0].clientY - yOffset;
+                } else {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                }
+
+                if (e.target === container || e.target.closest('#bookmarkletHeader') === container) {
+                    active = true;
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                active = false;
+            }
+
+            function drag(e) {
+                if (active) {
+                    e.preventDefault();
+                    
+                    if (e.type === "touchmove") {
+                        currentX = e.touches[0].clientX - initialX;
+                        currentY = e.touches[0].clientY - initialY;
+                    } else {
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                    }
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, dragItem);
+                }
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+            }
+        }
+        
+    </script>
+</body>
+</html>
