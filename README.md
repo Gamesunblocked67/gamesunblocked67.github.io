@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>gamesunbloocked67 — v1.6 (Study + Games)</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>gamesunbloocked67 — v1.6 (Study + Games) — Full</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -60,6 +60,23 @@ a{color:var(--accent)}
 .progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .2s linear}
 .warn{color:#ffcc66;font-weight:700;margin-top:8px}
 .link{color:var(--accent)}
+
+/* UPDATE PROGRESS BAR */
+.update-progress-container {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  margin-top: 10px;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.update-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #c88cff, #ffb76b);
+  transition: width 0.15s linear;
+}
 </style>
 </head>
 <body>
@@ -329,7 +346,7 @@ const VERSIONS = {
     {title:'Dev Console',code:`javascript:(function(){console.log('Hello Dev');})();`},
     {title:'Study Helper',code:`javascript:(function(){alert('Flashcards ready');})();`},
     {title:'Speed Hack',code:`javascript:(function(){alert('Speed increased');})();`},
-    {title:'Night Mode',code:`javascript:(function(){document.body.style.background='#000';})();`},
+    {title:'Night Mode',code:`javascript:(function(){document.body.style.background='#000';})();`}
   ]}
 };
 
@@ -372,7 +389,7 @@ function renderGames(){
   games.forEach(g=>{
     const div = document.createElement('div'); div.className='card';
     const embedText = g.src ? g.src : '';
-    div.innerHTML = `<h4>${g.title}</h4><div class="muted">Source: ${embedText}</div>
+    div.innerHTML = `<h4>${escapeHtml(g.title)}</h4><div class="muted">Source: ${escapeHtml(embedText)}</div>
       <div style="margin-top:8px"><button class="btn small" onclick="openGame('${encodeURIComponent(g.src)}')">Play</button></div>`;
     grid.appendChild(div);
   });
@@ -380,17 +397,16 @@ function renderGames(){
 
 function openGame(urlEnc){
   const url = decodeURIComponent(urlEnc);
-  // open in new tab; if iframe supported you can implement modal iframe
   window.open(url,'_blank');
 }
 
 function renderBookmarklets(){
   const board = document.getElementById('bmBoard'); board.innerHTML='';
-  const bms = VERSIONS[CURRENT_VERSION].bookmarklets;
+  const bms = VERSIONS[CURRENT_VERSION].bookmarklets || [];
   bms.forEach((b,i)=>{
     const card = document.createElement('div'); card.className='bm-card';
     card.draggable = true;
-    card.innerHTML = `<strong>${b.title}</strong><div style="font-size:12px;margin-top:8px;color:#ddd;white-space:pre-wrap">${b.code}</div>
+    card.innerHTML = `<strong>${escapeHtml(b.title)}</strong><div style="font-size:12px;margin-top:8px;color:#ddd;white-space:pre-wrap">${escapeHtml(b.code)}</div>
       <div style="margin-top:8px"><button class="btn small" onclick="copyBM(${i})">Copy</button></div>`;
     board.appendChild(card);
   });
@@ -399,7 +415,7 @@ function renderBookmarklets(){
   let dragEl = null;
   board.querySelectorAll('.bm-card').forEach(c=>{
     c.addEventListener('dragstart',e=>{ dragEl = c; c.classList.add('dragging'); });
-    c.addEventListener('dragend',e=>{ dragEl.classList.remove('dragging'); dragEl=null; });
+    c.addEventListener('dragend',e=>{ if(dragEl) dragEl.classList.remove('dragging'); dragEl=null; });
     c.addEventListener('dragover',e=>{ e.preventDefault(); if(dragEl && dragEl!==c){ board.insertBefore(dragEl, c.nextSibling); } });
   });
 }
@@ -413,18 +429,70 @@ function renderUpdates(){
   const tiles = document.getElementById('updatesTiles'); tiles.innerHTML='';
   Object.values(VERSIONS).forEach(v=>{
     const div = document.createElement('div'); div.className='card';
-    div.innerHTML = `<h4>${v.title}</h4><div class="muted">${v.desc}</div>
-      <div style="margin-top:8px"><button class="btn small" onclick="installVersion('${v.id}')">${v.id===CURRENT_VERSION?'Installed':'Install'}</button></div>`;
+    div.innerHTML = `<h4>${escapeHtml(v.title)}</h4><div class="muted">${escapeHtml(v.desc)}</div>
+      <div style="margin-top:8px"><button class="btn small" onclick="installVersion('${v.id}')">${v.id===CURRENT_VERSION?'Installed':'Install'}</button></div>
+
+      <!-- progress bars for both modes (hidden until used) -->
+      <div style="margin-top:10px">
+        <div style="font-size:12px;color:#bbb">Games update progress</div>
+        <div class="update-progress-container" id="prog-games-${escapeHtml(v.id)}"><div class="update-progress-bar" id="bar-games-${escapeHtml(v.id)}"></div></div>
+      </div>
+      <div style="margin-top:8px">
+        <div style="font-size:12px;color:#bbb">Study update progress</div>
+        <div class="update-progress-container" id="prog-study-${escapeHtml(v.id)}"><div class="update-progress-bar" id="bar-study-${escapeHtml(v.id)}"></div></div>
+      </div>
+    `;
     tiles.appendChild(div);
   });
 }
 
 function installVersion(id){
-  if(!confirm('Install version '+id+'? This will change available games/bookmarklets.')) return;
-  CURRENT_VERSION = id;
-  localStorage.setItem('gsu_version', id);
-  renderAll();
-  alert('Installed v'+id);
+  const verType = MODE === 'study' ? 'study' : 'games';
+  startInstallWithProgress(id, verType);
+}
+
+function startInstallWithProgress(ver, verType){
+  if(ver === CURRENT_VERSION){
+    alert('Already installed');
+    return;
+  }
+  const barId = `bar-${verType}-${ver}`;
+  const progContainerId = `prog-${verType}-${ver}`;
+  const barEl = document.getElementById(barId);
+  if(!barEl){
+    // fallback: run instant install
+    CURRENT_VERSION = ver;
+    localStorage.setItem('gsu_version', ver);
+    alert('Installed v'+ver);
+    renderAll();
+    return;
+  }
+  // show the container (just to be safe)
+  const cont = document.getElementById(progContainerId);
+  if(cont) cont.style.display = 'block';
+
+  let progress = 0;
+  barEl.style.width = '0%';
+  const interval = setInterval(()=>{
+    progress += Math.random()*12 + 4; // random increment
+    if(progress>100) progress = 100;
+    barEl.style.width = progress+'%';
+    if(progress>=100){
+      clearInterval(interval);
+      // finalize install after small delay
+      setTimeout(()=>{
+        CURRENT_VERSION = ver;
+        localStorage.setItem('gsu_version', ver);
+        alert('Installed v'+ver+' ('+verType+')');
+        // reset bars
+        try{
+          document.getElementById(`bar-games-${ver}`).style.width='0%';
+          document.getElementById(`bar-study-${ver}`).style.width='0%';
+        }catch(e){}
+        renderAll();
+      }, 450);
+    }
+  }, 140);
 }
 
 /* -------------- STUDY TOOLS STORAGE & FUNCTIONS -------------- */
@@ -439,10 +507,10 @@ function addFlashcard(){
   document.getElementById('fcTerm').value=''; document.getElementById('fcDef').value='';
 }
 function renderFC(){
-  const el=document.getElementById('fcList'); el.innerHTML='';
+  const el=document.getElementById('fcList'); if(!el) return; el.innerHTML='';
   FLASHCARDS.forEach((f,i)=>{
     const div=document.createElement('div'); div.style.marginTop='6px';
-    div.innerHTML = `<strong>${f.term}</strong><div style="font-size:13px;color:#ddd">${f.def}</div>
+    div.innerHTML = `<strong>${escapeHtml(f.term)}</strong><div style="font-size:13px;color:#ddd">${escapeHtml(f.def)}</div>
       <div style="margin-top:6px"><button class="btn small" onclick="removeFC(${i})">Remove</button></div>`;
     el.appendChild(div);
   });
@@ -452,21 +520,20 @@ function removeFC(i){ FLASHCARDS.splice(i,1); saveFlashcards(); }
 /* Quiz */
 function generateQuiz(){
   if(FLASHCARDS.length<5){ alert('Need at least 5 flashcards to auto-generate a quiz'); return; }
-  // pick 5 random
   const arr = FLASHCARDS.slice(); shuffle(arr); const qs = arr.slice(0,5);
-  const qa = qs.map((q,idx)=>`<div style="margin-top:8px"><strong>Q${idx+1}:</strong> What is "${q.term}"?<div><input id="ans${idx}" style="width:100%;padding:6px;border-radius:6px;background:#111;border:1px solid #222;color:#fff"></div></div>`);
-  const html = qa.join('') + `<div style="margin-top:8px"><button class="btn" onclick="gradeQuiz(${JSON.stringify(qs)})">Submit</button></div>`;
+  const qa = qs.map((q,idx)=>`<div style="margin-top:8px"><strong>Q${idx+1}:</strong> What is "${escapeHtml(q.term)}"?<div><input id="ans${idx}" style="width:100%;padding:6px;border-radius:6px;background:#111;border:1px solid #222;color:#fff"></div></div>`);
+  const html = qa.join('') + `<div style="margin-top:8px"><button class="btn" onclick="gradeQuiz()">Submit</button></div>`;
   document.getElementById('quizArea').innerHTML = html;
 }
-function gradeQuiz(qsJson){
-  // qsJson is array of objects
-  const qs = qsJson;
+function gradeQuiz(){
+  const inputs = document.querySelectorAll('[id^=ans]');
   let score=0;
-  for(let i=0;i<qs.length;i++){
-    const a = document.getElementById('ans'+i).value.trim().toLowerCase();
-    if(a && qs[i].def.toLowerCase().includes(a)) score++;
+  for(let i=0;i<inputs.length;i++){
+    const a = inputs[i].value.trim().toLowerCase();
+    const q = FLASHCARDS[i] || {};
+    if(a && q.def && q.def.toLowerCase().includes(a)) score++;
   }
-  alert('Score: '+score+' / '+qs.length);
+  alert('Score: '+score+' / '+inputs.length);
 }
 
 /* Math practice */
@@ -474,7 +541,6 @@ function mathPractice(){
   const type = document.getElementById('mathType').value;
   let html = '';
   if(type==='fractions'){
-    // simple fraction addition
     const a = randInt(1,6), b=randInt(2,8), c=randInt(1,6), d=randInt(2,8);
     html = `<div>${a}/${b} + ${c}/${d} = ? <br><input id="mathAns" style="width:100%;padding:6px;margin-top:8px"></div>
       <div style="margin-top:8px"><button class="btn" onclick="checkFraction(${a},${b},${c},${d})">Check</button></div>`;
@@ -483,17 +549,16 @@ function mathPractice(){
     html = `<div>${x} + ${y} = ? <br><input id="mathAns" style="width:100%;padding:6px;margin-top:8px"></div>
       <div style="margin-top:8px"><button class="btn" onclick="checkInteger(${x},${y})">Check</button></div>`;
   } else {
-    const n=randInt(1,9);
-    html = `<div>Solve: ${n} + x = ${n+randInt(1,9)} <br><input id="mathAns" style="width:100%;padding:6px;margin-top:8px"></div>
-      <div style="margin-top:8px"><button class="btn" onclick="checkEquation(${n})">Check</button></div>`;
+    const n=randInt(1,9); const s = randInt(1,9);
+    html = `<div>Solve: ${n} + x = ${n+s} <br><input id="mathAns" style="width:100%;padding:6px;margin-top:8px"></div>
+      <div style="margin-top:8px"><button class="btn" onclick="checkEquation(${n},${s})">Check</button></div>`;
   }
   document.getElementById('mathArea').innerHTML = html;
 }
 function checkFraction(a,b,c,d){
-  // naive check: compute decimal
   const right = (a/b)+(c/d);
   const ans = parseFloat(document.getElementById('mathAns').value);
-  if(Math.abs(ans - right) < 0.001) alert('Correct!');
+  if(!isNaN(ans) && Math.abs(ans - right) < 0.001) alert('Correct!');
   else alert('Try again. Answer ~ '+right.toFixed(3));
 }
 function checkInteger(x,y){
@@ -501,18 +566,16 @@ function checkInteger(x,y){
   if(ans===x+y) alert('Correct!');
   else alert('Try again. Answer: '+(x+y));
 }
-function checkEquation(n){
+function checkEquation(n,s){
   const val = parseInt(document.getElementById('mathAns').value);
-  // equation was n + x = (n + rand) - but we didn't store; so just accept numeric
-  if(!isNaN(val)) alert('Got it — check with teacher if unsure.');
-  else alert('Enter a number');
+  if(val === n+s) alert('Correct!');
+  else alert('Try again. Answer: '+(n+s));
 }
 
 /* ELA */
 function elaSummary(){
   const t = document.getElementById('elaText').value.trim();
   if(!t) { alert('Paste a paragraph first'); return; }
-  // simple summarizer: return first sentence or first 20 words
   const first = t.split(/[.?!]\s/)[0];
   const words = t.split(/\s+/).slice(0,20).join(' ');
   document.getElementById('elaResult').innerText = 'Summary: ' + (first || words);
@@ -520,10 +583,9 @@ function elaSummary(){
 function elaGrammar(){
   const t = document.getElementById('elaText').value.trim();
   if(!t) { alert('Paste a paragraph first'); return; }
-  // naive grammar suggestions
   const suggestions = [];
   if(t.includes(' ur ')) suggestions.push('Avoid texting shorthand like "ur"');
-  if(t.match(/\b( alot|alot )\b/)) suggestions.push('Use "a lot" (two words).');
+  if(t.match(/\balot\b/)) suggestions.push('Use "a lot" (two words).');
   if(suggestions.length===0) suggestions.push('No obvious issues found (basic check).');
   document.getElementById('elaResult').innerText = 'Grammar hints:\n - ' + suggestions.join('\n - ');
 }
@@ -534,8 +596,8 @@ function ssInfo(){
   const area = document.getElementById('ssArea');
   if(topic==='cells') area.innerText = 'Cells: basic unit of life. Animal cells vs plant cells: chloroplasts in plant cells.';
   if(topic==='energy') area.innerText = 'Energy: kinetic vs potential. Energy is conserved in closed systems.';
-  if(topic==='colonial') area.innerText = 'Colonial America: key events include Mayflower (1620), colonies growing for trade, taxation issues later lead to revolution.';
-  if(topic==='geography') area.innerText = 'Geography tip: use coordinates (latitude, longitude). Look at maps for state capitals (MA: Boston).';
+  if(topic==='colonial') area.innerText = 'Colonial America: key events include Mayflower (1620), colonies grew for trade; taxation issues later led to revolution.';
+  if(topic==='geography') area.innerText = 'Geography tip: use coordinates (latitude, longitude). MA state capital: Boston.';
 }
 
 /* Notes */
@@ -555,9 +617,9 @@ function sampleTest(){
 function gradeTest(){
   let score=0;
   const a1 = parseFloat(document.getElementById('t1').value);
-  if(Math.abs(a1 - 1.25) < 0.01) score++;
+  if(!isNaN(a1) && Math.abs(a1 - 1.25) < 0.01) score++;
   const a2 = (document.getElementById('t2').value||'').toLowerCase();
-  if(a2.includes('chloroplast') || a2.includes('chloroplasts')) score++;
+  if(a2.includes('chloroplast')) score++;
   alert('Test score: '+score+'/2');
 }
 
@@ -591,7 +653,7 @@ function renderHW(){
   const el = document.getElementById('hwList'); el.innerHTML='';
   HW.forEach((h,i)=>{
     const div = document.createElement('div'); div.style.marginTop='8px';
-    div.innerHTML = `<div><strong>${h.title}</strong> — due ${h.due} <button class="btn small" onclick="removeHW(${i})">Remove</button></div>`;
+    div.innerHTML = `<div><strong>${escapeHtml(h.title)}</strong> — due ${escapeHtml(h.due)} <button class="btn small" onclick="removeHW(${i})">Remove</button></div>`;
     el.appendChild(div);
   });
 }
@@ -600,14 +662,14 @@ function removeHW(i){ HW.splice(i,1); localStorage.setItem('gsu_hw', JSON.string
 /* Vocab */
 let VOCAB = JSON.parse(localStorage.getItem('gsu_vocab')||'[]');
 function addVocab(){ const t=document.getElementById('vTerm').value.trim(), d=document.getElementById('vDef').value.trim(); if(!t||!d){alert('Add word and definition');return;} VOCAB.push({word:t,def:d}); localStorage.setItem('gsu_vocab',JSON.stringify(VOCAB)); renderVocab(); document.getElementById('vTerm').value=''; document.getElementById('vDef').value=''; }
-function renderVocab(){ const el=document.getElementById('vocabList'); el.innerHTML=''; VOCAB.forEach((v,i)=>{ const div=document.createElement('div'); div.style.marginTop='6px'; div.innerHTML=`<strong>${v.word}</strong><div style="font-size:13px;color:#ddd">${v.def}</div><div style="margin-top:6px"><button class="btn small" onclick="removeVocab(${i})">Remove</button></div>`; el.appendChild(div); }); }
+function renderVocab(){ const el=document.getElementById('vocabList'); el.innerHTML=''; VOCAB.forEach((v,i)=>{ const div=document.createElement('div'); div.style.marginTop='6px'; div.innerHTML=`<strong>${escapeHtml(v.word)}</strong><div style="font-size:13px;color:#ddd">${escapeHtml(v.def)}</div><div style="margin-top:6px"><button class="btn small" onclick="removeVocab(${i})">Remove</button></div>`; el.appendChild(div); }); }
 function removeVocab(i){ VOCAB.splice(i,1); localStorage.setItem('gsu_vocab',JSON.stringify(VOCAB)); renderVocab(); }
 
 /* Calculator */
 function calc(){ const exp = document.getElementById('calcIn').value.trim(); try{ const res = eval(exp); document.getElementById('calcOut').innerText = 'Result: '+res; }catch(e){ alert('Invalid expression'); } }
 
-/* PDF viewer - just show filename (full PDF viewer needs embed libs) */
-document.getElementById('pdfFile').addEventListener('change', (e)=>{ const f = e.target.files[0]; if(!f) return; document.getElementById('pdfArea').innerText = 'Selected: '+f.name; });
+/* PDF viewer - just show filename (full viewer needs libraries) */
+document.addEventListener('DOMContentLoaded', ()=>{ const pdfEl = document.getElementById('pdfFile'); if(pdfEl){ pdfEl.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(!f) return; document.getElementById('pdfArea').innerText = 'Selected: '+f.name; }); } });
 
 /* AI Tutor - canned responses */
 function aiTutor(){
@@ -637,11 +699,6 @@ renderFC();
 renderHW();
 renderVocab();
 
-/* -------------- Page init after user chooses -------------- */
-function initAfterLoad(){
-  // nothing optional
-}
-
 /* -------------- Save state before unload -------------- */
 window.addEventListener('beforeunload', ()=> {
   localStorage.setItem('gsu_flashcards', JSON.stringify(FLASHCARDS));
@@ -649,14 +706,16 @@ window.addEventListener('beforeunload', ()=> {
   localStorage.setItem('gsu_vocab', JSON.stringify(VOCAB));
 });
 
-/* Render update/games/bookmarklets initially (when landing choice made) */
-function renderAllOnShow(){
-  renderAll();
-}
+/* -------------- Helpers -------------- */
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-/* If user returns (resume) show landing */
+/* -------------- Render on demand -------------- */
+function renderAllOnShow(){ renderAll(); }
+
+/* -------------- DOM ready for landing resume -------------- */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // landing visible by default
+  // show landing by default
+  // if user had a stored mode we could resume
 });
 </script>
 </body>
