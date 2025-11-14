@@ -297,7 +297,7 @@ a{color:var(--accent)}
     </div>
   </div>
 
-  <div class="footer">© 2025 gamesunbloocked67 — built for Oak Middle School 7th grade practice</div>
+  <div class="footer">© 2025 gamesunbloocked67 — built for acing 7th grade</div>
 </div>
 
 <script>
