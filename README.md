@@ -3,397 +3,716 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>gamesunbloocked67 — v2.0 (Manual Updates)</title>
+<title>gamesunbloocked67 — WebLLM (Medium) Ready</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg-a:#0f0320; --bg-b:#2f0b3a; --accent:#ff7a38; --accent-2:#c88cff;
-  --muted:#e6ddf6; --glass:rgba(255,255,255,0.04);
+  --bg:#0d0420;--card:#151224;--accent:#ff7a38;--muted:#dcd3ef;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Roboto,system-ui,-apple-system,Segoe UI,Arial;background:linear-gradient(180deg,var(--bg-a),var(--bg-b));color:var(--muted);-webkit-font-smoothing:antialiased}
-.container{max-width:1180px;margin:18px auto;padding:18px}
-.header{display:flex;align-items:center;justify-content:space-between}
-.brand{font-weight:700;font-size:22px}
-.topnote{font-size:13px;color:rgba(255,255,255,0.75)}
-.landing{margin-top:18px;padding:18px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);text-align:center}
-.choices{display:flex;gap:18px;justify-content:center;margin-top:12px}
-.choice{width:260px;padding:18px;border-radius:12px;background:rgba(255,255,255,0.02);cursor:pointer;border:1px solid rgba(255,255,255,0.03);transition:transform .18s}
-.choice:hover{transform:translateY(-6px)}
-.topnav{display:flex;gap:10px;margin-top:18px}
-.topnav button{background:transparent;border:1px solid rgba(255,255,255,0.05);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer}
-.page{display:none;margin-top:18px}
-.page.active{display:block}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.card{background:rgba(0,0,0,0.25);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
-.study-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:12px}
-.tools-wrap{display:grid;grid-template-columns:1fr 340px;gap:12px;margin-top:12px}
-@media (max-width:980px){.tools-wrap{grid-template-columns:1fr}}
-.small-muted{font-size:13px;color:rgba(255,255,255,0.7)}
-.update-modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#242424;border:3px solid var(--accent);border-radius:12px;padding:20px 24px;z-index:9999;display:none;width:420px;box-shadow:0 12px 40px rgba(0,0,0,0.6)}
-.update-title{color:#fff;font-weight:700;text-align:center}
-.update-desc{color:#ddd;text-align:center;margin-top:8px}
-.update-bar-wrap{margin-top:14px;background:#1a1a1a;border-radius:10px;height:14px;overflow:hidden}
-.update-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#ffb76b);transition:width .18s linear}
-.full-screen{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:9998}
-.modal-card{background:#0f0f10;border-radius:10px;padding:12px;max-width:92%;width:100%;max-height:90vh;overflow:auto}
+html,body{margin:0;height:100%;font-family:Roboto,system-ui,-apple-system,Segoe UI,Arial;background:linear-gradient(180deg,var(--bg),#30103b);color:var(--muted);-webkit-font-smoothing:antialiased}
+.container{max-width:1100px;margin:14px auto;padding:14px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:20px}
+.note{font-size:13px}
+nav{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tab{padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.02);cursor:pointer}
+.tab.active{outline:2px solid rgba(255,255,255,0.04);box-shadow:0 6px 24px rgba(0,0,0,0.6)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+.small{font-size:13px;color:rgba(255,255,255,0.8)}
+.btn{background:var(--accent);color:#120018;padding:8px 10px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
+.full-screen{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:9998;padding:24px}
+.modal-card{background:#0b0b0b;padding:14px;border-radius:12px;width:92%;max-width:1100px;max-height:88vh;overflow:auto}
+.input,textarea,select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#0a0710;color:var(--muted);margin-top:8px}
+.panel{position:fixed;background:var(--card);border:2px solid var(--accent);padding:10px;border-radius:10px;z-index:9999;cursor:move;display:none;max-height:80vh;overflow:auto;width:300px}
+.panel h4{margin:0 0 8px 0;color:var(--accent)}
+.small-muted{font-size:12px;color:rgba(255,255,255,0.65)}
+.q-card{background:#0e0b13;padding:10px;border-radius:8px;margin-top:8px}
+.choice{background:#120418;padding:8px;border-radius:8px;margin-top:6px;cursor:pointer}
+.choice.selected{outline:2px solid rgba(255,200,0,0.22)}
 .footer{margin-top:18px;text-align:center;color:rgba(255,255,255,0.6);font-size:13px}
-input,textarea,select{background:#110611;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px;border-radius:6px;width:100%}
-.btn{background:var(--accent);color:#120018;padding:8px 10px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
-.small{padding:6px 8px;font-size:13px}
-.bm-board{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
-.bm-card{min-width:200px;padding:10px;border-radius:8px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.04)}
-.notice{padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);margin-top:8px}
+@media (max-width:520px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <div class="brand">gamesunbloocked67 <span style="font-size:12px">v2.0</span></div>
-    <div class="topnote">Study + Games • Support: <a href="https://www.youtube.com/@cursedgamer2" target="_blank">YouTube.com/@cursedgamer2</a></div>
+    <div class="brand">gamesunbloocked67 <small id="ver">(WebLLM-ready)</small></div>
+    <div class="note small-muted">Study Hub + 100 games • Browser AI (medium) supported — no server required</div>
   </div>
 
-  <div id="landing" class="landing">
-    <div style="font-weight:700;font-size:18px">Choose a mode</div>
-    <div class="choices">
-      <div class="choice" onclick="enterMode('study')"><h3>Study Mode</h3><div class="small-muted">AI Tutor, subjects, flashcards, quizzes</div></div>
-      <div class="choice" onclick="enterMode('games')"><h3>Games Mode</h3><div class="small-muted">Play games (avoid school devices)</div></div>
+  <nav>
+    <div class="tab active" id="tab-games" onclick="showTab('games')">Games</div>
+    <div class="tab" id="tab-study" onclick="showTab('study')">Study</div>
+    <div class="tab" id="tab-bookmarklets" onclick="showTab('bookmarklets')">Bookmarklets</div>
+    <div class="tab" id="tab-settings" onclick="showTab('settings')">Settings</div>
+    <div class="tab" id="tab-updates" onclick="showTab('updates')">Updates</div>
+  </nav>
+
+  <!-- GAMES -->
+  <section id="games" style="display:block">
+    <div class="grid" id="gamesGrid"></div>
+    <div class="small" style="margin-top:10px">Tip: Click Play. If embedding is blocked, use "Open in new tab".</div>
+  </section>
+
+  <!-- STUDY -->
+  <section id="study" style="display:none">
+    <div class="card">
+      <h3>Study Hub</h3>
+      <div class="small-muted">AI Tutor · Quiz Maker · Flashcards (WebLLM medium model recommended)</div>
+
+      <label class="small-muted" style="margin-top:10px">Select subject</label>
+      <select id="subjectSelect" class="input"><option>Math</option><option>Science</option><option>English</option></select>
+
+      <label class="small-muted" style="margin-top:8px">AI Tutor — type your question</label>
+      <textarea id="aiQuestion" rows="2" class="input" placeholder="e.g. Solve 2x+5=17 step-by-step or explain photosynthesis"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" onclick="askWebLLM()">Ask WebLLM</button>
+        <button class="btn" onclick="askLocal()">Ask Local (fallback)</button>
+        <button class="btn" onclick="startStudyMode()">Start Study Mode</button>
+      </div>
+
+      <div id="aiTutorArea" style="margin-top:12px"></div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.04);margin:12px 0">
+
+      <label class="small-muted">Quiz Maker</label>
+      <input id="quizPrompt" class="input" placeholder="e.g. photosynthesis basics" />
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="quizCount" type="number" value="5" min="1" max="20" style="width:80px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#0a0710;color:var(--muted)">
+        <button class="btn" onclick="generateQuiz()">Generate Quiz</button>
+      </div>
+      <div id="quizArea" style="margin-top:12px"></div>
+
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.04);margin:12px 0">
+
+      <label class="small-muted">Flashcard Maker</label>
+      <input id="flashPrompt" class="input" placeholder="e.g. photosynthesis" />
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="flashCount" type="number" value="8" min="1" max="50" style="width:80px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#0a0710;color:var(--muted)">
+        <button class="btn" onclick="createFlashcards()">Create Flashcards</button>
+      </div>
+      <div id="flashArea" style="margin-top:12px"></div>
     </div>
-    <div style="margin-top:10px" class="small-muted">Tip: Use Updates page to add or remove features manually.</div>
-  </div>
+  </section>
 
-  <div id="app" style="display:none">
-    <div class="topnav" role="navigation">
-      <button onclick="showSection('home')">Home</button>
-      <button onclick="showSection('study')">Study</button>
-      <button onclick="showSection('games')">Games</button>
-      <button onclick="showSection('bookmarklets')">Bookmarklets</button>
-      <button onclick="showSection('updates')">Updates</button>
-    </div>
-
-    <div id="home" class="page active"><div class="card"><h3>Welcome</h3><div class="small-muted">Choose Study or Games. Use Updates to install features manually.</div></div></div>
-
-    <div id="study" class="page">
-      <h2>Study Hub</h2>
-      <div class="small-muted">v2.0: manual update system — install/remove updates from the Updates page.</div>
-
-      <div class="study-grid" id="studyGrid"></div>
-
-      <div class="tools-wrap">
-        <div class="card">
-          <h3>AI Tutor</h3>
-          <div class="small-muted">Ask a question — math, science, history, reading, writing.</div>
-          <textarea id="aiInput" placeholder="Ask: Solve 3/4 + 1/2 or Explain photosynthesis" style="height:80px"></textarea>
-          <div style="display:flex;gap:8px;margin-top:8px"><button class="btn" onclick="runAITutor()">Ask</button><button class="btn" onclick="clearAI()">Clear</button></div>
-          <div id="aiResult" style="margin-top:10px;min-height:80px;background:#0b0610;padding:8px;border-radius:6px"></div>
-
-          <hr style="margin:12px 0">
-          <h4>Flashcard Generator</h4>
-          <input id="fcTopic" placeholder="Topic (e.g. Photosynthesis)">
-          <div style="display:flex;gap:8px;margin-top:8px"><input id="fcCount" type="number" value="6" style="width:100px"><button class="btn" onclick="generateFlashcards()">Generate</button></div>
-          <div id="generatedFC" style="margin-top:10px"></div>
-
-          <hr style="margin:12px 0">
-          <h4>Quiz Maker</h4>
-          <div style="display:flex;gap:8px;margin-top:8px"><select id="quizSource"><option value="flashcards">From Flashcards</option><option value="custom">Custom</option></select><input id="quizCount" type="number" value="5" style="width:80px"><button class="btn" onclick="buildQuiz()">Build Quiz</button></div>
-          <div id="quizArea" style="margin-top:12px"></div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div class="card">
-            <h4>Quick Subject Buttons</h4>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-              <button class="btn small" onclick="prefill('math')">Math</button>
-              <button class="btn small" onclick="prefill('science')">Science</button>
-              <button class="btn small" onclick="prefill('history')">History</button>
-              <button class="btn small" onclick="prefill('reading')">Reading</button>
-              <button class="btn small" onclick="prefill('writing')">Writing</button>
-              <button class="btn small" onclick="prefill('vocab')">Vocab</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <h4>Saved Flashcards</h4>
-            <div id="fcList" style="max-height:220px;overflow:auto;margin-top:8px"></div>
-            <div style="margin-top:8px;display:flex;gap:8px"><button class="btn small" onclick="exportFlashcards()">Export</button><button class="btn small" onclick="importFlashcards()">Import</button></div>
-          </div>
-
-          <div class="card">
-            <h4>Vocabulary</h4>
-            <input id="vWord" placeholder="Word"><input id="vDef" placeholder="Definition" style="margin-top:8px">
-            <div style="margin-top:8px;display:flex;gap:8px"><button class="btn small" onclick="addVocab()">Add</button></div>
-            <div id="vocabList" style="margin-top:8px;max-height:120px;overflow:auto"></div>
-          </div>
-        </div>
+  <!-- BOOKMARKLETS -->
+  <section id="bookmarklets" style="display:none">
+    <div class="card">
+      <h3>Bookmarklets</h3>
+      <div class="small-muted">Draggable panel available — copy or run bookmarklets.</div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn" onclick="toggleBMPanel()">Toggle Panel</button>
+        <button class="btn" onclick="addCustomBookmarklet()">Add custom</button>
       </div>
     </div>
+  </section>
 
-    <div id="games" class="page">
-      <h2>Games</h2>
-      <div class="small-muted">Play games in the embedded viewer.</div>
-      <div id="gamesGrid" class="grid" style="margin-top:12px"></div>
-      <div class="card" style="margin-top:12px">
-        <h4>Installed Games</h4>
-        <div id="installedGames" class="small-muted"></div>
+  <!-- SETTINGS -->
+  <section id="settings" style="display:none">
+    <div class="card">
+      <h3>Settings</h3>
+      <div class="small-muted">WebLLM model (medium: 4–8B) — supply a direct model bundle / endpoint URL if you have one.</div>
+      <label class="small-muted" style="margin-top:8px">Model bundle / endpoint URL (optional)</label>
+      <input id="modelUrl" class="input" placeholder="Paste a WebLLM-compatible model bundle URL or endpoint here (leave blank to use local fallback)" />
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn" onclick="loadWebLLMModel()">Load model</button>
+        <button class="btn" onclick="unloadWebLLMModel()" style="background:#666;color:#fff">Unload model</button>
       </div>
+      <div style="margin-top:12px" class="small-muted">If you don't have a hosted bundle, leave empty — the local fallback tutor will work.</div>
     </div>
+  </section>
 
-    <div id="bookmarklets" class="page">
-      <h2>Bookmarklets</h2>
-      <div class="small-muted">Copy the code to your clipboard to save as a bookmarklet.</div>
-      <div id="bmBoard" class="bm-board"></div>
+  <!-- UPDATES -->
+  <section id="updates" style="display:none">
+    <div class="card">
+      <h3>Updates</h3>
+      <div class="small-muted">Manual updates system (none pending)</div>
     </div>
+  </section>
 
-    <div id="updates" class="page">
-      <h2>Updates & Version Manager (Manual)</h2>
-      <div class="small-muted">Click Install to apply an update (adds/removes features). Click Remove to uninstall.</div>
-      <div id="updatesTiles" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px"></div>
-      <div class="card" style="margin-top:12px"><h4>Changelog</h4><div id="changelog"></div></div>
-    </div>
+  <div class="footer">© 2025 gamesunbloocked67</div>
+</div>
 
-  </div>
+<!-- Draggable bookmarklet panel & tab cloaker -->
+<div id="bmPanel" class="panel" style="left:18px;top:110px">
+  <h4>Bookmarklets</h4>
+  <div id="bmList" class="small-muted"></div>
+  <div style="margin-top:8px" class="small-muted">Drag this panel — click Run to open bookmarklet.</div>
+</div>
 
-  <div id="updateModal" class="update-modal">
-    <div id="updateTitle" class="update-title">Downloading Update...</div>
-    <div id="updateDesc" class="update-desc">Installing...</div>
-    <div class="update-bar-wrap"><div id="updateBar" class="update-bar"></div></div>
-  </div>
+<div id="cloaker" class="panel" style="left:340px;top:110px">
+  <h4>Tab Cloaker</h4>
+  <a href="https://drive.google.com" target="_blank" class="btn" style="display:block;text-align:center">Open Google Drive</a>
+  <div class="small-muted" style="margin-top:8px">Cloaker bookmarklet (copy below)</div>
+  <textarea id="cloakCode" class="input" rows="3">javascript:(function(){window.location='https://drive.google.com';})();</textarea>
+  <button class="btn" style="margin-top:8px" onclick="copyText(document.getElementById('cloakCode').value)">Copy Cloaker</button>
+</div>
 
-  <div id="fs" class="full-screen"><div id="fsCard" class="modal-card"></div></div>
-  <div class="footer">© 2025 gamesunbloocked67 — v2.0</div>
+<!-- full-screen modal -->
+<div class="full-screen" id="fs" style="display:none">
+  <div class="modal-card" id="fsCard"></div>
 </div>
 
 <script>
-/* ---------------- Persistent content and updates (Manual) ---------------- */
-const BASE = {
-  games: [
-    {id:'snake', title:'Snake', src:'https://www.google.com/logos/2010/snake_arcade/snake_arcade.html'},
-    {id:'dino', title:'T-Rex Dino', src:'https://chromedino.com/'}
-  ],
-  bookmarklets: [
-    {id:'edit', title:'Edit Page', code:"javascript:(function(){document.body.contentEditable='true';})();"}
-  ],
-  studyTools: ['Flashcards','Basic AI Tutor']
+/* ============================
+   App-wide state & helpers
+   ============================ */
+
+const STATE = {
+  games: [],            // will hold 100 games
+  bm : [],              // bookmarklets
+  webllm: null,         // web-llm model runtime object (if loaded)
+  webllmLoaded: false,  // flag
+  modelUrl: ''          // user-provided model URL
 };
 
-/* Updates are manual: user must click Install to apply */
-const UPDATES = {
-  '1.2': {id:'1.2', title:'v1.2', desc:'Add 2048 & vocab builder', add:{games:[{id:'2048',title:'2048',src:'https://play2048.co/'}], bookmarklets:[], studyTools:['Vocabulary Builder']}, remove:{} },
-  '1.4': {id:'1.4', title:'v1.4', desc:'Add Retro Bowl & Quiz Maker', add:{games:[{id:'retrobowl',title:'Retro Bowl',src:'https://retrobowlgame.io/'}], bookmarklets:[], studyTools:['Quiz Maker']}, remove:{} },
-  '1.6': {id:'1.6', title:'v1.6', desc:'Add study games & bookmarks', add:{games:[{id:'vocabquest',title:'Vocabulary Quest',src:'https://example.com/vocabquest'},{id:'mathmini',title:'Math Mini-Golf',src:'https://example.com/mathminigolf'}], bookmarklets:[{id:'mini',title:'Mini Browser',code:"javascript:(function(){var i=document.createElement('iframe');i.src='https://www.google.com/';i.style.position='fixed';i.style.right='10px';i.style.top='10px';i.style.width='420px';i.style.height='300px';i.style.zIndex=99999;document.body.appendChild(i);})();"}], studyTools:['Study Games']}, remove:{} },
-  '1.8': {id:'1.8', title:'v1.8', desc:'AI Real Tutor & Subject Helpers', add:{studyTools:['AI Real Tutor','Math Solver','Science Explainer','History Helper','Writing Coach']}, remove:{} },
-  '1.9': {id:'1.9', title:'v1.9', desc:'Flashcard Generator & Quiz Maker', add:{studyTools:['Flashcard Generator','Quiz Maker']}, remove:{} }
-};
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeAttr(s){ if(!s) return (s||''); return String(s).replace(/"/g,'%22').replace(/'/g,"%27"); }
 
-let content = JSON.parse(localStorage.getItem('gs_content_v2')) || JSON.parse(JSON.stringify(BASE));
-let applied = JSON.parse(localStorage.getItem('gs_applied_v2')) || []; // applied update IDs
+/* ----------------------------
+   Populate 100 games (geometry-lessons .html)
+   ---------------------------- */
+(function populateGames(){
+  for(let i=1;i<=100;i++){
+    STATE.games.push({
+      id: 'g'+i,
+      title: 'Geometry Game ' + i,
+      src: `https://geometry-lessons.github.io/game${i}.html`
+    });
+  }
+})();
 
-/* --------------- UI rendering --------------- */
-function enterMode(mode){
-  document.getElementById('landing').style.display='none';
-  document.getElementById('app').style.display='block';
-  showSection(mode==='games'?'games':'study');
-  renderAll();
-  if(mode==='games') setTimeout(()=>alert('Please do not play these on your school device'),120);
-}
-function showSection(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); const el=document.getElementById(id); if(el) el.classList.add('active'); }
-
-function renderAll(){
-  renderStudyGrid();
-  renderGames();
-  renderBookmarklets();
-  renderUpdates();
-  renderFlashcards();
-  renderVocab();
-}
-
-/* Study grid simple buttons */
-function renderStudyGrid(){
-  const grid = document.getElementById('studyGrid'); grid.innerHTML='';
-  const tools = content.studyTools || [];
-  if(!tools.length) { grid.innerHTML = '<div class="notice">No study tools installed. Install updates from the Updates page.</div>'; return; }
-  tools.forEach(t=>{
-    const d = document.createElement('div'); d.className='study-card card';
-    d.innerHTML = `<h3>${escapeHtml(t)}</h3><div class="small-muted">Open ${escapeHtml(t)}</div>`;
-    d.onclick = ()=>{ openTool(t); };
-    grid.appendChild(d);
-  });
-}
-function openTool(t){
-  showSection('study');
-  const aiInput = document.getElementById('aiInput');
-  if(t.toLowerCase().includes('math')) prefill('math');
-  else if(t.toLowerCase().includes('photosynthesis')||t.toLowerCase().includes('science')) prefill('science');
-  else if(t.toLowerCase().includes('flash')) { document.getElementById('fcTopic').focus(); }
-  else { aiInput.value = 'Explain: ' + t; runAITutor(); }
-}
-
-/* Games & bookmarklets rendering */
 function renderGames(){
-  const g = document.getElementById('gamesGrid'); g.innerHTML='';
-  (content.games||[]).forEach(game=>{
-    const el = document.createElement('div'); el.className='card';
-    el.innerHTML = `<h4>${escapeHtml(game.title)}</h4><div class="small-muted">${escapeHtml(game.src)}</div><div style="margin-top:8px"><button class="btn small" onclick="openGame('${encodeURIComponent(game.src)}')">Play</button></div>`;
-    g.appendChild(el);
-  });
-  document.getElementById('installedGames').innerText = (content.games||[]).map(x=>x.title).join(', ');
-}
-function openGame(urlEnc){ const url = decodeURIComponent(urlEnc); const fs = document.getElementById('fs'); const card = document.getElementById('fsCard'); card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>Game</strong><button class="btn small" onclick="closeFS()">Close</button></div><div style="height:72vh;margin-top:8px;"><iframe src="${escapeHtml(url)}" style="width:100%;height:100%;border:none"></iframe></div>`; fs.style.display='flex'; }
-function closeFS(){ document.getElementById('fs').style.display='none'; document.getElementById('fsCard').innerHTML=''; }
-
-function renderBookmarklets(){
-  const board = document.getElementById('bmBoard'); board.innerHTML='';
-  (content.bookmarklets||[]).forEach((b,i)=>{ const c = document.createElement('div'); c.className='bm-card card'; c.innerHTML = `<strong>${escapeHtml(b.title)}</strong><div style="font-size:12px;color:#ddd;white-space:pre-wrap;margin-top:8px">${escapeHtml(b.code||'')}</div><div style="margin-top:8px"><button class="btn small" onclick="copyBM(${i})">Copy</button></div>`; board.appendChild(c); });
-}
-function copyBM(i){ const code = (content.bookmarklets||[])[i]?.code || ''; if(!code){ alert('No code'); return; } navigator.clipboard.writeText(code).then(()=>alert('Copied bookmarklet')); }
-
-/* Updates rendering: manual installs/removals */
-function renderUpdates(){
-  const tiles = document.getElementById('updatesTiles'); tiles.innerHTML='';
-  Object.values(UPDATES).forEach(u=>{
-    const appliedFlag = applied.includes(u.id);
+  const grid = document.getElementById('gamesGrid');
+  grid.innerHTML = '';
+  STATE.games.forEach(g=>{
     const card = document.createElement('div'); card.className='card';
-    card.innerHTML = `<h4>${escapeHtml(u.title)}</h4><div class="small-muted">${escapeHtml(u.desc)}</div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn small" onclick="installUpdate('${u.id}')" ${appliedFlag? 'disabled':''}>Install</button>
-        <button class="btn small" onclick="uninstallUpdate('${u.id}')" ${appliedFlag? '':'disabled'}>Remove</button>
-      </div>
-      <div style="margin-top:8px" class="small-muted">Status: ${appliedFlag? 'Installed':'Not installed'}</div>`;
-    tiles.appendChild(card);
+    card.innerHTML = `<div style="font-weight:700">${escapeHtml(g.title)}</div>
+      <div class="small" style="margin-top:6px">${escapeHtml(g.src)}</div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn" onclick="playGame('${escapeAttr(g.src)}','${escapeAttr(g.title)}')">Play</button>
+        <button class="btn" style="background:#666;color:#fff" onclick="window.open('${escapeAttr(g.src)}','_blank')">Open in new tab</button>
+      </div>`;
+    grid.appendChild(card);
   });
-  const ch = document.getElementById('changelog'); ch.innerHTML = '';
-  applied.forEach(id=>{ if(UPDATES[id]){ const d = document.createElement('div'); d.style.marginTop='6px'; d.innerHTML = `<strong>${escapeHtml(UPDATES[id].title)}</strong> — ${escapeHtml(UPDATES[id].desc)}`; ch.appendChild(d); } });
 }
 
-/* Install update (manual) with modal progress, then apply changes */
-function installUpdate(id){
-  const upd = UPDATES[id]; if(!upd) return alert('Update not found');
-  if(applied.includes(id)) return alert('Already installed');
-  // show modal
-  const modal = document.getElementById('updateModal'); const title = document.getElementById('updateTitle'); const desc = document.getElementById('updateDesc'); const bar = document.getElementById('updateBar');
-  title.innerText = `Installing ${upd.title}...`; desc.innerText = upd.desc; bar.style.width='0%'; modal.style.display='block';
-  let p = 0; const timer = setInterval(()=>{ p += Math.random()*12 + 5; if(p>100) p=100; bar.style.width = p + '%'; if(p>=100){ clearInterval(timer); setTimeout(()=>{ modal.style.display='none'; applyUpdate(upd); alert(upd.title + ' installed'); },600); } },150);
+/* ----------------------------
+   Play game in fullscreen iframe
+   ---------------------------- */
+function playGame(src,title){
+  const html = `<div style="display:flex;justify-content:space-between;align-items:center">
+    <strong>${escapeHtml(title)}</strong><div style="display:flex;gap:8px"><button class="btn" onclick="openInNew()">Open in new tab</button><button class="btn" onclick="closeFS()">Close</button></div></div>
+    <div style="height:72vh;margin-top:8px"><iframe id="gameFrame" src="${src}" style="width:100%;height:100%;border:none" sandbox="allow-scripts allow-forms allow-same-origin"></iframe></div>`;
+  openFS(html);
+  // helper open in new tab
+  window.openInNew = ()=>window.open(src,'_blank');
 }
 
-/* Uninstall update: remove its additions and revert to base+other applied updates */
-function uninstallUpdate(id){
-  if(!applied.includes(id)) return alert('Not installed');
-  // remove id from applied and rebuild content
-  applied = applied.filter(x=> x !== id);
-  // rebuild starting from BASE and reapply applied updates in order
-  content = JSON.parse(JSON.stringify(BASE));
-  applied.forEach(aid=>{ if(UPDATES[aid]) applyUpdateToContent(UPDATES[aid], content); });
-  persist();
-  renderAll();
-  renderUpdates();
-  alert('Removed ' + id);
+/* ----------------------------
+   Fullscreen/modal helpers
+   ---------------------------- */
+function openFS(html){
+  document.getElementById('fsCard').innerHTML = html;
+  document.getElementById('fs').style.display = 'flex';
+}
+function closeFS(){
+  document.getElementById('fs').style.display = 'none';
+  document.getElementById('fsCard').innerHTML = '';
 }
 
-/* Apply update: add/remove content and persist */
-function applyUpdate(u){
-  applyUpdateToContent(u, content);
-  applied.push(u.id);
-  persist();
-  renderAll();
-  renderUpdates();
+/* ----------------------------
+   Tabs
+   ---------------------------- */
+function showTab(id){
+  ['games','study','bookmarklets','settings','updates'].forEach(s=>{
+    document.getElementById(s).style.display = (s===id?'block':'none');
+    const tab = document.getElementById('tab-'+s);
+    if(tab) tab.classList.toggle('active', s===id);
+  });
 }
 
-/* Core function to modify content object */
-function applyUpdateToContent(u, cont){
-  if(u.add){
-    if(u.add.games) {
-      cont.games = cont.games || [];
-      u.add.games.forEach(g=>{ if(!cont.games.find(x=>x.id===g.id)) cont.games.push(g); });
+/* ----------------------------
+   Bookmarklets
+   ---------------------------- */
+(function defaultBookmarklets(){
+  // 20 bookmarklets: titles + code
+  const list = [
+    ['Mini Browser',"javascript:(function(){var u=prompt('Open URL','https://'); if(u) window.open(u,'_blank');})();"],
+    ['Show Cookies',"javascript:(function(){alert(document.cookie);})();"],
+    ['Toggle Invert',"javascript:(function(){document.documentElement.style.filter=document.documentElement.style.filter?'':'invert(1) hue-rotate(180deg)';})();"],
+    ['Highlight Links',"javascript:(function(){document.querySelectorAll('a').forEach(a=>a.style.background='yellow');})();"],
+    ['Remove Images',"javascript:(function(){document.querySelectorAll('img').forEach(i=>i.remove());})();"],
+    ['Increase Font',"javascript:(function(){document.body.style.fontSize='18px';})();"],
+    ['Decrease Font',"javascript:(function(){document.body.style.fontSize='12px';})();"],
+    ['Auto Scroll',"javascript:(function(){window._autoScroll=setInterval(()=>window.scrollBy(0,1),20);})();"],
+    ['Stop Auto Scroll',"javascript:(function(){clearInterval(window._autoScroll);})();"],
+    ['View H1s',"javascript:(function(){alert(Array.from(document.querySelectorAll('h1')).map(h=>h.innerText).join('\\n'));})();"],
+    ['Download Images',"javascript:(function(){Array.from(document.images).forEach((img,i)=>{const a=document.createElement('a');a.href=img.src;a.download='img'+i;document.body.appendChild(a);a.click();a.remove();});})();"],
+    ['Translate Page (Google)',"javascript:(function(){window.open('https://translate.google.com/translate?sl=auto&tl=en&u='+encodeURIComponent(location.href));})();"],
+    ['Outline Blocks',"javascript:(function(){document.querySelectorAll('*').forEach(e=>e.style.outline='1px solid rgba(255,0,0,0.12)');})();"],
+    ['Read Aloud',"javascript:(function(){var t=document.body.innerText;var s=new SpeechSynthesisUtterance(t);speechSynthesis.speak(s);})();"],
+    ['Print Page',"javascript:(function(){window.print();})();"],
+    ['Toggle Images Visibility',"javascript:(function(){document.querySelectorAll('img').forEach(i=>i.style.visibility=i.style.visibility==='hidden'?'visible':'hidden');})();"],
+    ['Alert Time',"javascript:(function(){alert(new Date());})();"],
+    ['Find H2s',"javascript:(function(){alert(Array.from(document.querySelectorAll('h2')).map(h=>h.innerText).join('\\n'));})();"],
+    ['Remove Ads (basic)',"javascript:(function(){document.querySelectorAll('iframe,ins,[id^=ad],.ad').forEach(e=>e.remove());})();"],
+    ['Bookmarklet Info',"javascript:(function(){alert('gamesunbloocked67 bookmarklets');})();"]
+  ];
+  STATE.bm = list.map((x,i)=>({id:'bm'+(i+1), title:x[0], code:x[1]}));
+})();
+
+function renderBMPanel(){
+  const el = document.getElementById('bmList'); el.innerHTML = '';
+  STATE.bm.forEach(b=>{
+    const d = document.createElement('div'); d.style.marginBottom='10px';
+    d.innerHTML = `<div style="display:flex;gap:8px;align-items:center">
+      <div style="flex:1;font-weight:700">${escapeHtml(b.title)}</div>
+      <div><button class="btn" onclick="copyText('${b.code.replace(/'/g,"\\'")}')">Copy</button></div>
+      <div><a class="btn" href="${b.code}" target="_blank">Run</a></div>
+      </div><div class="small-muted" style="margin-top:6px;font-family:monospace;word-break:break-all">${escapeHtml(b.code)}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function toggleBMPanel(){ const p = document.getElementById('bmPanel'); p.style.display = p.style.display==='block'?'none':'block'; }
+
+function addCustomBookmarklet(){
+  const title = prompt('Bookmarklet title');
+  const code = prompt('Bookmarklet code (start with javascript:)');
+  if(title && code){ STATE.bm.push({id:'bm'+(STATE.bm.length+1), title, code}); renderBMPanel(); alert('Added'); }
+}
+function copyText(t){ navigator.clipboard.writeText(t).then(()=>alert('Copied')); }
+
+/* Draggable helper for panels */
+function makeDraggable(el){
+  let dragging=false, ox=0, oy=0;
+  el.addEventListener('mousedown', e=>{
+    dragging = true;
+    ox = e.clientX - (el.offsetLeft || 0);
+    oy = e.clientY - (el.offsetTop || 0);
+    el.style.cursor = 'grabbing';
+  });
+  document.addEventListener('mouseup', ()=>{ dragging=false; el.style.cursor='grab'; });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    el.style.left = (e.clientX - ox) + 'px';
+    el.style.top = (e.clientY - oy) + 'px';
+  });
+  el.style.left = el.style.left || (20 + Math.random()*80) + 'px';
+  el.style.top = el.style.top || (110 + Math.random()*60) + 'px';
+  el.style.cursor='grab';
+}
+
+/* ----------------------------
+   Tab Cloaker copy helper
+   ---------------------------- */
+function copyCloaker(){ copyText(document.getElementById('cloakCode').value); }
+
+/* ----------------------------
+   Local fallback AI (fast, no model)
+   ---------------------------- */
+function askLocal(){
+  const subj = document.getElementById('subjectSelect').value;
+  const q = document.getElementById('aiQuestion').value.trim();
+  if(!q) return alert('Please enter a question');
+  const outEl = document.getElementById('aiTutorArea');
+  outEl.innerHTML = '<div class="card"><div class="small-muted">Thinking (local) …</div></div>';
+  setTimeout(()=>{
+    const resp = localTutor(subj,q);
+    outEl.innerHTML = `<div class="card"><pre style="white-space:pre-wrap">${escapeHtml(resp)}</pre></div>`;
+  }, 150);
+}
+
+function localTutor(subject, q){
+  // improved local heuristics: math solver for linear equations and arithmetic, plus structured text for others
+  const lower = q.toLowerCase();
+  if(subject==='Math' && /[0-9x\+\-\*\/\(\)=]/.test(q)){
+    // try simple linear eq: ax+b=c
+    const eq = q.replace(/\s+/g,'');
+    const lin = eq.match(/^([+-]?\d*)x([+-]\d+)?=([+-]?\d+)$/i);
+    if(lin){
+      let a = lin[1]; if(a===''||a==='+') a='1'; if(a==='-') a='-1'; a = Number(a);
+      const b = lin[2] ? Number(lin[2]) : 0;
+      const c = Number(lin[3]);
+      const x = (c - b) / a;
+      return `Solve ${a}x ${b>=0?'+':'-'} ${Math.abs(b)} = ${c}\n1) Subtract ${b}: ${a}x = ${c-b}\n2) Divide by ${a}: x = ${x}\nAnswer: x = ${x}\n\nIf you want step-by-step hints, ask "next step".`;
     }
-    if(u.add.bookmarklets){
-      cont.bookmarklets = cont.bookmarklets || [];
-      u.add.bookmarklets.forEach(b=>{ if(!cont.bookmarklets.find(x=>x.id===b.id)) cont.bookmarklets.push(b); });
-    }
-    if(u.add.studyTools){
-      cont.studyTools = cont.studyTools || [];
-      u.add.studyTools.forEach(t=>{ if(!cont.studyTools.includes(t)) cont.studyTools.push(t); });
+    // arithmetic expression
+    try{
+      const cleaned = q.replace(/[^0-9+\-*/(). ]/g,'');
+      const val = Function('"use strict";return ('+cleaned+')')();
+      return `Compute: ${cleaned}\nResult: ${val}\nBreakdown: follow parentheses, then * /, then + -`;
+    }catch(e){}
+  }
+  // non-math: structured guidance
+  if(subject==='Science'){
+    if(lower.includes('photosynthesis')){
+      return `Photosynthesis (short):\n1) Inputs: CO2 + H2O + sunlight\n2) Light reactions convert sunlight to chemical energy (ATP/NADPH)\n3) Calvin cycle builds glucose from CO2\n4) Output: glucose + O2\n\nAsk for "light reactions details" or "calvin cycle steps" to drill down.`;
     }
   }
-  if(u.remove){
-    if(u.remove.games) cont.games = (cont.games||[]).filter(g=> !u.remove.games.includes(g.id));
-    if(u.remove.bookmarklets) cont.bookmarklets = (cont.bookmarklets||[]).filter(b=> !u.remove.bookmarklets.includes(b.id));
-    if(u.remove.studyTools) cont.studyTools = (cont.studyTools||[]).filter(t=> !u.remove.studyTools.includes(t));
+  if(subject==='English'){
+    if(lower.includes('essay')){
+      return `Essay writing guide:\n1) Hook + thesis statement\n2) 3 body paragraphs each with claim + evidence\n3) Conclusion restates thesis and adds perspective\n\nI can help write outlines or full paragraphs — ask for "outline" or "paragraph 1".`;
+    }
+  }
+  // fallback generic tutor
+  return `Here's how to approach "${q}":\n1) Restate the question in your own words\n2) Break into smaller tasks\n3) Solve each task with an example\n4) Check your results\n\nAsk for "an example" or "simplify step 1" to continue.`;
+}
+
+/* ----------------------------
+   WebLLM integration (browser-based)
+   ---------------------------- */
+
+/*
+  Implementation notes:
+  - We don't bundle a model here. Instead the page attempts to load a WebLLM runtime if a model URL is supplied in Settings.
+  - If you have a WebLLM-compatible model bundle URL or hosted endpoint that provides a runnable inference (a .json + weight files or a web-service), put that URL into Settings -> Model bundle / endpoint URL and click "Load model".
+  - For iPad (medium 4-8B), pick a model bundle labeled for WebLLM or MLC Web. After loading the runtime, the page will call the model for tutor/quiz/flashcard tasks.
+  - If model fails to load, the page falls back to the local JS tutor.
+*/
+
+async function loadWebLLMModel(){
+  const url = document.getElementById('modelUrl').value.trim();
+  if(!url) return alert('Paste a WebLLM-compatible model bundle URL or endpoint in Settings first.');
+  STATE.modelUrl = url;
+  // Try to import web-llm runtime from CDN (best-effort). If the CDN isn't reachable or the runtime changes, fallback to local.
+  openFS(`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Loading model</strong><button class="btn" onclick="closeFS()">Cancel</button></div><div style="margin-top:12px">Attempting to load WebLLM runtime and model. This may take a while depending on model size and your device.</div>`);
+  try{
+    // dynamic import from mlc web-llm (best-effort). We don't hard-code a single CDN to avoid breaking; try a common URL.
+    // The code below attempts to load the runtime in one of two ways. If neither succeeds, we show instructions.
+    try{
+      // attempt to load @mlc-ai/web-llm via unpkg/esm
+      if(!window.WebLLM){
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/@mlc-ai/web-llm/dist/webllm.min.js';
+        document.head.appendChild(s);
+        await new Promise((res,rej)=>{ s.onload=res; s.onerror=rej; setTimeout(()=>{},200); });
+      }
+    }catch(e){
+      console.warn('web-llm CDN load failed',e);
+    }
+
+    if(!window.WebLLM){
+      // fallback: maybe mlc is available as global mlc? try another CDN
+      try{
+        const s2 = document.createElement('script');
+        s2.src = 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/dist/webllm.min.js';
+        document.head.appendChild(s2);
+        await new Promise((res,rej)=>{ s2.onload=res; s2.onerror=rej; });
+      }catch(e){
+        console.warn('web-llm second CDN failed',e);
+      }
+    }
+
+    if(!window.WebLLM){
+      throw new Error('WebLLM runtime failed to load from CDN. This environment may not support dynamic runtime loading. The app will fall back to the local tutor.');
+    }
+
+    // instantiate model from URL; how this is done depends on the runtime's API.
+    // We'll try a safe / common call pattern used by WebLLM: WebLLM.load({model: modelUrl, ...})
+    const modelUrl = STATE.modelUrl;
+    // eslint-disable-next-line no-undef
+    const runtime = await WebLLM.load({ model: modelUrl, backend: 'webgpu' }).catch(err=>{
+      console.warn('error loading model via WebLLM.load',err);
+      throw err;
+    });
+
+    // Keep runtime in state for future queries
+    STATE.webllm = runtime;
+    STATE.webllmLoaded = true;
+    closeFS();
+    alert('Model loaded successfully. WebLLM is ready.');
+  }catch(err){
+    console.error('Model load failed',err);
+    closeFS();
+    alert('Could not load WebLLM model: ' + (err.message||String(err)) + '\nFalling back to local AI.');
+    STATE.webllm = null;
+    STATE.webllmLoaded = false;
   }
 }
 
-/* Persist content and applied list */
-function persist(){
-  localStorage.setItem('gs_content_v2', JSON.stringify(content));
-  localStorage.setItem('gs_applied_v2', JSON.stringify(applied));
+function unloadWebLLMModel(){
+  if(STATE.webllm && STATE.webllm.release){
+    try{ STATE.webllm.release(); }catch(e){console.warn('release error',e);}
+  }
+  STATE.webllm = null; STATE.webllmLoaded = false; STATE.modelUrl = '';
+  document.getElementById('modelUrl').value = '';
+  alert('Unloaded WebLLM model. Local fallback is active.');
 }
 
-/* -------------- Flashcards and Quiz functions -------------- */
-let FLASHCARDS = JSON.parse(localStorage.getItem('gs_flashcards_v2')||'[]');
-function renderFlashcards(){ const el = document.getElementById('fcList'); if(!el) return; el.innerHTML=''; FLASHCARDS.forEach((f,i)=>{ const d = document.createElement('div'); d.style.marginTop='8px'; d.innerHTML = `<strong>${escapeHtml(f.term)}</strong><div style="font-size:13px;color:#ddd">${escapeHtml(f.def)}</div><div style="margin-top:6px"><button class="btn small" onclick="removeFlash(${i})">Remove</button></div>`; el.appendChild(d); }); }
-function addFlashcardFromGenerated(term,def){ FLASHCARDS.push({term,def}); persistFlashcards(); renderFlashcards(); }
-function exportFlashcards(){ prompt('Copy flashcards JSON', JSON.stringify(FLASHCARDS)); }
-function importFlashcards(){ const s = prompt('Paste flashcards JSON'); try{ const arr = JSON.parse(s||'[]'); if(Array.isArray(arr)){ FLASHCARDS = FLASHCARDS.concat(arr); persistFlashcards(); renderFlashcards(); alert('Imported'); } }catch(e){alert('Invalid JSON');} }
-function removeFlash(i){ FLASHCARDS.splice(i,1); persistFlashcards(); renderFlashcards(); }
-function persistFlashcards(){ localStorage.setItem('gs_flashcards_v2', JSON.stringify(FLASHCARDS)); }
-
-function generateFlashcards(){
-  const topic = (document.getElementById('fcTopic').value||'').trim(); const count = Math.max(1, Math.min(20, parseInt(document.getElementById('fcCount').value)||6));
-  if(!topic) return alert('Enter a topic');
-  const cards = makeFlashcardsFromTopic(topic, count);
-  const out = document.getElementById('generatedFC'); out.innerHTML=''; cards.forEach(c=>{ const el = document.createElement('div'); el.style.marginTop='8px'; el.innerHTML = `<strong>${escapeHtml(c.term)}</strong><div style="color:#ddd">${escapeHtml(c.def)}</div><div style="margin-top:6px"><button class="btn small" onclick='addFlashcardFromGenerated(${JSON.stringify(c.term)}, ${JSON.stringify(c.def)})'>Save</button></div>`; out.appendChild(el); });
+/* Query WebLLM (if loaded) with a prompt and return raw text.
+   This function MUST be adapted to the specific runtime API used by your model bundle.
+   The example below uses a common pattern (runtime.generate) — adjust to the actual WebLLM implementation you use.
+*/
+async function queryWebLLM(prompt, opts = {maxNewTokens:256, temperature:0.2}){
+  if(!STATE.webllmLoaded || !STATE.webllm) throw new Error('WebLLM not loaded');
+  // Example pattern — you will likely need to adapt according to the WebLLM runtime you host
+  // Some runtimes expose runtime.generate() that returns text/stream. We'll attempt a promise style call:
+  try{
+    // The API differs between bundles. Try a few common names.
+    if(typeof STATE.webllm.generate === 'function'){
+      const out = await STATE.webllm.generate(prompt, opts);
+      // assume out is string or {text:...}
+      if(typeof out === 'string') return out;
+      if(out && out.text) return out.text;
+      if(out && out[0] && out[0].generated_text) return out[0].generated_text;
+      return JSON.stringify(out);
+    }
+    if(typeof STATE.webllm.run === 'function'){
+      const out = await STATE.webllm.run(prompt, opts);
+      if(typeof out === 'string') return out;
+      return JSON.stringify(out);
+    }
+    // fallback: if runtime provides .call
+    if(typeof STATE.webllm.call === 'function'){
+      const out = await STATE.webllm.call(prompt, opts);
+      if(typeof out === 'string') return out;
+      if(out && out.output) return out.output;
+      return JSON.stringify(out);
+    }
+    throw new Error('No known generate/run API on the loaded WebLLM object. Consult the runtime docs and adapt queryWebLLM.');
+  }catch(err){
+    throw err;
+  }
 }
-function makeFlashcardsFromTopic(topic,n){
-  const base = topic.split(/\s+/).slice(0,3).join(' ');
-  const cards=[]; for(let i=0;i<n;i++){ cards.push({term:`${base} — key idea #${i+1}`, def:`Explanation or definition for ${base} concept ${i+1}.`}); } return cards;
+
+/* ----------------------------
+   "Ask WebLLM" flow for AI Tutor
+   - if WebLLM loaded => use it
+   - else => fallback to local tutor
+   ---------------------------- */
+async function askWebLLM(){
+  const subj = document.getElementById('subjectSelect').value;
+  const q = document.getElementById('aiQuestion').value.trim();
+  if(!q) return alert('Enter a question');
+  const outEl = document.getElementById('aiTutorArea');
+  outEl.innerHTML = `<div class="card"><div class="small-muted">Sending prompt to model…</div></div>`;
+  // Compose a tutor prompt instructing to return structured steps, hints, example, practice question
+  const prompt = `You are a helpful ${subj} tutor. Provide:
+1) One-line concise answer.
+2) Numbered step-by-step explanation or solution (if applicable).
+3) Two hints for the student.
+4) One short practice problem with answer (label as 'practice:').
+Keep output plain text and clearly separated by headings. Question: ${q}`;
+  try{
+    if(STATE.webllmLoaded && STATE.webllm){
+      const text = await queryWebLLM(prompt, { maxNewTokens: 512, temperature: 0.15 });
+      outEl.innerHTML = `<div class="card"><pre style="white-space:pre-wrap">${escapeHtml(text)}</pre></div>`;
+    } else {
+      // fallback
+      const local = localTutor(subj, q);
+      outEl.innerHTML = `<div class="card"><pre style="white-space:pre-wrap">${escapeHtml('(local fallback)\n\n' + local)}</pre></div>`;
+    }
+  }catch(err){
+    console.error('WebLLM query error',err);
+    outEl.innerHTML = `<div class="card"><pre style="white-space:pre-wrap">Model error: ${escapeHtml(String(err))}\n\nFalling back to local tutor.</pre></div>`;
+    const local = localTutor(subj, q);
+    outEl.innerHTML += `<div class="card" style="margin-top:8px"><pre style="white-space:pre-wrap">${escapeHtml(local)}</pre></div>`;
+  }
 }
 
-function buildQuiz(){
-  const source = document.getElementById('quizSource').value; const count = Math.max(1, Math.min(20, parseInt(document.getElementById('quizCount').value) || 5));
-  let questions=[];
-  if(source==='flashcards'){
-    if(FLASHCARDS.length < 2) return alert('Need at least 2 flashcards for a quiz');
-    const pool = FLASHCARDS.slice(); shuffle(pool); const picks = pool.slice(0, Math.min(count,pool.length));
-    questions = picks.map(p=> makeMCQFromFlashcard(p, FLASHCARDS));
+/* ----------------------------
+   Quiz generation (local + WebLLM)
+   ---------------------------- */
+function generateQuiz(){
+  const prompt = document.getElementById('quizPrompt').value.trim();
+  const count = Math.max(1, Math.min(20, Number(document.getElementById('quizCount').value || 5)));
+  if(!prompt) return alert('Enter a prompt for quiz');
+  // Use WebLLM if present, else local generator
+  if(STATE.webllmLoaded){
+    (async ()=>{
+      openFS(`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Generating quiz</strong><button class="btn" onclick="closeFS()">Cancel</button></div><div style="margin-top:12px">Please wait, model is generating ${count} MCQs…</div>`);
+      try{
+        const req = `Create ${count} multiple-choice questions about "${prompt}". Return JSON only like {"questions":[{"q":"...","choices":["A","B","C","D"],"answer":0},...]} `;
+        const text = await queryWebLLM(req, { maxNewTokens: 600, temperature:0.25 });
+        // try to extract JSON
+        const first = text.indexOf('{'), last = text.lastIndexOf('}');
+        let json;
+        if(first!==-1 && last!==-1) {
+          json = JSON.parse(text.substring(first,last+1));
+        } else {
+          json = JSON.parse(text);
+        }
+        renderQuiz(json.questions);
+      }catch(e){
+        console.warn('Quiz generation failed, using local generator',e);
+        const qlocal = localQuiz(prompt, count);
+        renderQuiz(qlocal);
+      } finally { closeFS(); }
+    })();
   } else {
-    const raw = prompt('Enter custom Q&A pairs as "Question|Answer" each on a new line (max ' + count + '):'); if(!raw) return;
-    const lines = raw.split(/\n/).slice(0,count);
-    questions = lines.map(l=>{ const parts = l.split('|'); return {q:parts[0]||'Question', correct:parts[1]||'Answer', choices:generateDistractors(parts[1]||'Answer')}; });
+    const qlocal = localQuiz(prompt, count);
+    renderQuiz(qlocal);
   }
-  renderQuiz(questions);
 }
-function makeMCQFromFlashcard(f,all){ const correct = f.def; const choices=[correct]; const others = all.filter(x=>x.def!==correct).map(x=>x.def).slice(0,3); while(choices.length<4 && others.length) choices.push(others.shift()); while(choices.length<4) choices.push(correct+' (check)'); shuffle(choices); return {q:f.term, choices, correct}; }
-function generateDistractors(val){ if(!val) return [val,val+' (no)',val+' (maybe)','None of the above']; const words = val.split(/\s+/); const d1 = words.reverse().join(' '); return [val,d1,val+' (near)','None of the above'].slice(0,4); }
-function renderQuiz(questions){ const area = document.getElementById('quizArea'); area.innerHTML=''; if(!questions||!questions.length){ area.innerText='No questions'; return; } const form = document.createElement('div'); questions.forEach((qq,idx)=>{ const qdiv=document.createElement('div'); qdiv.style.marginTop='8px'; qdiv.innerHTML = `<div><strong>Q${idx+1}.</strong> ${escapeHtml(qq.q)}</div>`; qq.choices.forEach((ch,i)=>{ const r=document.createElement('div'); r.style.marginTop='6px'; r.innerHTML = `<label><input type="radio" name="q${idx}" value="${escapeHtml(ch)}"> ${escapeHtml(ch)}</label>`; qdiv.appendChild(r); }); form.appendChild(qdiv); }); const submit = document.createElement('div'); submit.style.marginTop='12px'; submit.innerHTML = `<button class="btn" onclick="gradeQuiz()">Submit</button> <button class="btn" onclick="clearQuiz()">Clear</button>`; form.appendChild(submit); window._currentQuiz = questions; area.appendChild(form); }
-function gradeQuiz(){ const qs = window._currentQuiz || []; let score=0; for(let i=0;i<qs.length;i++){ const radios = document.getElementsByName('q'+i); let chosen=null; for(const r of radios){ if(r.checked) chosen = r.value; } if(chosen && chosen === qs[i].correct) score++; } alert('Score: ' + score + ' / ' + qs.length); }
-function clearQuiz(){ document.getElementById('quizArea').innerHTML=''; window._currentQuiz=null; }
 
-/* --------------- AI Tutor --------------- */
-function runAITutor(){ const q=(document.getElementById('aiInput').value||'').trim(); const out=document.getElementById('aiResult'); if(!q){ out.innerText='Type a question to get help.'; return; } const r = simpleTutor(q); out.innerHTML = `<strong>Hint:</strong> ${escapeHtml(r.hint)}<div style="margin-top:8px"><strong>Example / Steps:</strong><div>${escapeHtml(r.example)}</div></div>`; }
-function simpleTutor(q){ const s=q.toLowerCase(); if(s.match(/\d/)){ const m=tryMathSolve(s); if(m.found) return {hint:m.hint, example:m.example}; } if(s.includes('photosynthesis')||s.includes('mitosis')||s.includes('cell')) return {hint:'Identify inputs, processes, and outputs.', example:'Photosynthesis: sunlight + CO2 + water -> glucose + O2'}; if(s.includes('fraction')||s.includes('/')) return {hint:'Find common denominator or convert to decimals.', example:'1/2 + 1/4 = 3/4'}; if(s.includes('essay')||s.includes('paragraph')) return {hint:'Start with topic sentence, add supporting details, end with conclusion.', example:'Intro: State your claim clearly.'}; if(s.includes('summar')||s.includes('reading')) return {hint:'Find the main idea and 2-3 supporting details.', example:'Main idea: X; Details: A, B, C.'}; return {hint:'Break into smaller steps; identify key terms; try an example.', example:'Summarize main idea in one sentence.'}; }
-function tryMathSolve(s){ try{ const cleaned = s.replace(/[^0-9+\-*/().\/ ]/g,''); if(cleaned.match(/[0-9]/) && cleaned.match(/[\+\-\*\/]/)){ const val = Function('"use strict";return ('+cleaned+')')(); return {found:true, hint:'Compute step-by-step and check arithmetic.', example:'Result ≈ ' + val}; } }catch(e){} return {found:false}; }
+function renderQuiz(questions){
+  const out = document.getElementById('quizArea');
+  out.innerHTML = '';
+  questions.forEach((q,qi)=>{
+    const card = document.createElement('div'); card.className='card';
+    let inner = `<div style="font-weight:700">Q${qi+1}: ${escapeHtml(q.q)}</div>`;
+    q.choices.forEach((c,ci)=>{
+      inner += `<div style="margin-top:6px"><label><input type="radio" name="q${qi}" value="${ci}"> ${escapeHtml(c)}</label></div>`;
+    });
+    inner += `</div>`;
+    card.innerHTML = inner;
+    out.appendChild(card);
+  });
+  out.innerHTML += `<div style="margin-top:8px"><button class="btn" onclick="gradeQuiz(${questions.length})">Submit</button></div>`;
+  window._currentQuiz = questions;
+}
 
-/* --------------- Vocab --------------- */
-let VOCAB = JSON.parse(localStorage.getItem('gs_vocab_v2')||'[]');
-function addVocab(){ const w=document.getElementById('vWord').value.trim(); const d=document.getElementById('vDef').value.trim(); if(!w||!d){alert('Add word & definition');return;} VOCAB.push({w,d}); localStorage.setItem('gs_vocab_v2',JSON.stringify(VOCAB)); renderVocab(); document.getElementById('vWord').value=''; document.getElementById('vDef').value=''; }
-function renderVocab(){ const el=document.getElementById('vocabList'); el.innerHTML=''; VOCAB.forEach((v,i)=>{ const d=document.createElement('div'); d.style.marginTop='6px'; d.innerHTML=`<strong>${escapeHtml(v.w)}</strong><div style="font-size:13px;color:#ddd">${escapeHtml(v.d)}</div><div style="margin-top:6px"><button class="btn small" onclick="removeVocab(${i})">Remove</button></div>`; el.appendChild(d); }); }
-function removeVocab(i){ VOCAB.splice(i,1); localStorage.setItem('gs_vocab_v2',JSON.stringify(VOCAB)); renderVocab(); }
+function gradeQuiz(total){
+  const qs = window._currentQuiz || [];
+  let score = 0;
+  for(let i=0;i<qs.length;i++){
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    if(sel && Number(sel.value) === Number(qs[i].answer)) score++;
+  }
+  openFS(`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Quiz result</strong><button class="btn" onclick="closeFS()">Close</button></div><div style="margin-top:12px">Score: <span class="kv">${score}</span> / ${qs.length}</div>`);
+}
 
-/* Utilities */
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
-function prefill(subject){ const map={math:'Solve 3/4 + 1/2',science:'Explain photosynthesis',history:'Causes of the American Revolution',reading:'How to summarize a paragraph',writing:'Help me write a strong intro'}; document.getElementById('aiInput').value = map[subject]||''; runAITutor(); }
+/* Local quiz generator (fallback) */
+function localQuiz(prompt, count){
+  const words = prompt.split(/\s+/).slice(0,3).join(' ');
+  const out = [];
+  for(let i=1;i<=count;i++){
+    const correct = `Correct about ${words} ${i}`;
+    const choices = shuffle([correct, `Wrong A ${i}`, `Wrong B ${i}`, `Wrong C ${i}`]);
+    out.push({ q:`Which statement is true about ${prompt}? (item ${i})`, choices, answer: choices.indexOf(correct) });
+  }
+  return out;
+}
 
-/* Init */
+/* ----------------------------
+   Flashcards generator (local + WebLLM)
+   ---------------------------- */
+function createFlashcards(){
+  const prompt = document.getElementById('flashPrompt').value.trim();
+  const count = Math.max(1, Math.min(50, Number(document.getElementById('flashCount').value || 8)));
+  if(!prompt) return alert('Enter a topic');
+  // use webllm if available
+  if(STATE.webllmLoaded){
+    (async ()=>{
+      openFS(`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Generating flashcards</strong><button class="btn" onclick="closeFS()">Cancel</button></div><div style="margin-top:12px">Generating ${count} flashcards…</div>`);
+      try{
+        const full = `Generate ${count} concise flashcards for "${prompt}" as JSON like {"cards":[{"term":"...","def":"..."}]}`;
+        const text = await queryWebLLM(full, { maxNewTokens: 400, temperature:0.2 });
+        const first = text.indexOf('{'), last = text.lastIndexOf('}');
+        let json;
+        if(first!==-1 && last!==-1) json = JSON.parse(text.substring(first,last+1));
+        else json = JSON.parse(text);
+        saveAndRenderFlashcards(json.cards, prompt);
+      }catch(e){
+        console.warn('HF flash parse failed',e);
+        const cards = localFlashcards(prompt,count);
+        saveAndRenderFlashcards(cards, prompt);
+      } finally { closeFS(); }
+    })();
+  } else {
+    const cards = localFlashcards(prompt,count);
+    saveAndRenderFlashcards(cards,prompt);
+  }
+}
+
+function saveAndRenderFlashcards(cards, prompt){
+  const key = `flash:${prompt}`;
+  localStorage.setItem(key, JSON.stringify(cards));
+  renderFlashPreview(cards, prompt);
+}
+
+function renderFlashPreview(cards,prompt){
+  const out = document.getElementById('flashArea'); out.innerHTML = `<h4>Flashcards — ${escapeHtml(prompt)}</h4>`;
+  cards.forEach((c,idx)=>{
+    const d = document.createElement('div'); d.className='card';
+    d.innerHTML = `<div style="font-weight:700">${escapeHtml(c.term)}</div><div class="small-muted" style="margin-top:6px">${escapeHtml(c.def)}</div>
+      <div style="margin-top:8px"><button class="btn" onclick="startFlashStudy('${encodeURIComponent(prompt)}',${idx})">Study</button></div>`;
+    out.appendChild(d);
+  });
+}
+
+/* Local flashcards generator (fallback) */
+function localFlashcards(topic,n){
+  const base = topic.split(/\s+/).slice(0,3).join(' ');
+  const cards = [];
+  for(let i=1;i<=n;i++){
+    cards.push({ term:`${base} — Key ${i}`, def:`Short explanation of ${base} key ${i}.` });
+  }
+  return cards;
+}
+
+/* Flash study UI */
+function startFlashStudy(topicEnc,startIndex=0){
+  const topic = decodeURIComponent(topicEnc);
+  const key = `flash:${topic}`;
+  const raw = localStorage.getItem(key);
+  if(!raw) return alert('No flashcards for this topic (save first).');
+  const cards = JSON.parse(raw);
+  let i = startIndex;
+  function showCard(){
+    const c = cards[i];
+    openFS(`<div style="display:flex;justify-content:space-between;align-items:center"><strong>${escapeHtml(c.term)}</strong><button class="btn" onclick="closeFS()">Close</button></div>
+      <div style="margin-top:12px">${escapeHtml(c.def)}</div>
+      <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="markFlash('${encodeURIComponent(topic)}',${i},true)">I knew this</button><button class="btn" onclick="markFlash('${encodeURIComponent(topic)}',${i},false)" style="background:#666;color:#fff">I didn't</button><button class="btn" onclick="nextCard()">Next</button></div>`);
+  }
+  function nextCard(){ i = (i+1) % cards.length; showCard(); }
+  showCard();
+}
+
+function markFlash(topicEnc,index,known){
+  const topic = decodeURIComponent(topicEnc);
+  const key = `flash:${topic}`;
+  const cards = JSON.parse(localStorage.getItem(key));
+  if(!cards) return;
+  if(known) cards[index].interval = (cards[index].interval||1)*2;
+  else cards[index].interval = 1;
+  cards[index].due = Date.now() + (cards[index].interval||1)*24*3600*1000;
+  localStorage.setItem(key, JSON.stringify(cards));
+  closeFS();
+  alert('Saved progress');
+}
+
+/* ----------------------------
+   Utilities
+   ---------------------------- */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
+
+/* ----------------------------
+   Init on load
+   ---------------------------- */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // if first time, apply some updates to make app feel full by default (still manual - they are marked as applied so user may remove)
-  if(!applied.length){ ['1.2','1.4','1.6','1.8'].forEach(id=>{ if(UPDATES[id]){ applyUpdateToContent(UPDATES[id], content); applied.push(id); } }); persist(); }
-  renderAll();
-  // render update list options
-  const sim = document.getElementById('simGameSelect'); if(sim){ Object.values(UPDATES).forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.text=u.title; sim.appendChild(o); }); }
+  renderGames();
+  renderBMPanel();
+  makeDraggable(document.getElementById('bmPanel'));
+  makeDraggable(document.getElementById('cloaker'));
+  // panels hidden initially
+  document.getElementById('bmPanel').style.display='none';
+  document.getElementById('cloaker').style.display='block';
 });
 
-/* Persist on unload */
-window.addEventListener('beforeunload', ()=>{ persist(); persistFlashcards(); localStorage.setItem('gs_vocab_v2', JSON.stringify(VOCAB)); });
+/* ----------------------------
+   Study Mode quick flow starter
+   ---------------------------- */
+function startStudyMode(){
+  const subj = document.getElementById('subjectSelect').value;
+  const q = document.getElementById('aiQuestion').value.trim();
+  if(!q) return alert('Enter a question to start Study Mode');
+  // Launch a study flow: AI Tutor -> Quiz -> Flashcards (best effort)
+  askWebLLM(); // will put an answer in aiTutorArea (either WebLLM or local)
+  // Show buttons to run quiz/flashcards for same query
+  openFS(`<div style="display:flex;justify-content:space-between;align-items:center"><strong>Study Mode</strong><button class="btn" onclick="closeFS()">Close</button></div>
+    <div style="margin-top:12px">
+      <div style="margin-bottom:8px">1) Tutor answer shown on the Study page (close this modal)</div>
+      <div style="margin-bottom:8px"><button class="btn" onclick="document.getElementById('quizPrompt').value='${escapeAttr(q)}';generateQuiz()">Generate Quiz</button></div>
+      <div style="margin-bottom:8px"><button class="btn" onclick="document.getElementById('flashPrompt').value='${escapeAttr(q)}';createFlashcards()">Create Flashcards</button></div>
+    </div>`);
+}
 
 </script>
 </body>
