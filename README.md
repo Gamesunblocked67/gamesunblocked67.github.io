@@ -1,332 +1,769 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>7th Grade Ultimate Portal</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>7th Grade Ultimate Hub — Local Build</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/marked/marked.min.js"></script>
-<script src="https://unpkg.com/tone/build/Tone.js"></script>
-
-<!-- Firebase Setup -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'study-hub-v8';
-
-let db, auth;
-window.appSettings = { theme: '#3b82f6', aiProvider: 'OpenAI', keys: {} };
-window.ownerUnlocked = false;
-
-if(firebaseConfig){
-  const app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-  auth = getAuth(app);
-  await signInAnonymously(auth);
-
-  onAuthStateChanged(auth, async (user)=>{
-    if(user){
-      const globalConfigRef = doc(db, 'artifacts', appId, 'public_data', 'global_config');
-      onSnapshot(globalConfigRef, (doc)=>{
-        if(doc.exists()){
-          const data = doc.data();
-          if(data.keys){ window.appSettings.keys = data.keys; }
-        }
-      });
-      const userConfigRef = doc(db,'artifacts',appId,'users',user.uid,'settings','config');
-      const snap = await getDoc(userConfigRef);
-      if(snap.exists()){
-        const data = snap.data();
-        if(data.theme) applyTheme(data.theme);
-        if(data.provider) window.appSettings.aiProvider = data.provider;
-      }
-    }
-  });
-
-  window.saveSettingsToDb = async (scope)=>{
-    if(!auth.currentUser) return;
-    if(scope==='local' || scope==='both'){
-      const userDocRef = doc(db,'artifacts',appId,'users',auth.currentUser.uid,'settings','config');
-      await setDoc(userDocRef,{theme: window.appSettings.theme, provider: window.appSettings.aiProvider},{merge:true});
-    }
-    if((scope==='global'||scope==='both') && window.ownerUnlocked){
-      const globalDocRef = doc(db,'artifacts',appId,'public_data','global_config');
-      await setDoc(globalDocRef,{keys: window.appSettings.keys},{merge:true});
-      alert("Global API Keys Saved for ALL Users!");
-    } else if(scope==='local'){ alert("User Preferences Saved."); }
-  };
-}
-</script>
-
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://unpkg.com/tone@14.9.15/build/Tone.js"></script>
 <style>
-:root { --primary-color:#3b82f6; }
-.bg-primary{background-color:var(--primary-color);}
-.text-primary{color:var(--primary-color);}
-body{font-family:'Inter',sans-serif;background:#111827;color:#f3f4f6;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
-::-webkit-scrollbar{width:8px;}
-::-webkit-scrollbar-thumb{background:#4b5563;border-radius:4px;}
-::-webkit-scrollbar-track{background:#1f2937;}
-#content-wrapper{flex-grow:1;overflow:hidden;position:relative;}
-.tab-content{height:100%;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:2rem;}
-.hidden{display:none!important;}
-.resource-link:hover{transform:translateX(5px);}
-.youtube-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:.5rem;}
-.youtube-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;}
+  :root { --primary: #3b82f6; }
+  body { background:#0b1220; color:#e6eef8; font-family:Inter,system-ui,Segoe UI,Arial; height:100vh; margin:0; display:flex; flex-direction:column; }
+  .hidden { display:none!important; }
+  .tab-content { display:none; height:100%; overflow:auto; padding:1rem; }
+  .active { display:block; }
+  .accent { color:var(--primary); }
+  .card { background:#0f1724; border:1px solid #1f2937; padding:1rem; border-radius:.5rem; }
+  .truncate-1 { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .notice { background:#7c2dff; color:white; padding:.5rem 1rem; border-radius:.5rem; }
+  /* mini browser */
+  #mini-browser-modal iframe { width:100%; height:60vh; border:0; border-radius:.375rem; }
 </style>
-
-<script>
-function applyTheme(color){document.documentElement.style.setProperty('--primary-color',color);window.appSettings.theme=color;}
-function openTab(tabId,btn){
-  document.querySelectorAll('.tab-content').forEach(el=>el.classList.add('hidden'));
-  document.getElementById(tabId).classList.remove('hidden');
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('bg-gray-700','text-white'));
-  if(btn) btn.classList.add('bg-gray-700','text-white');
-  if(tabId==='resources') loadResources('Math');
-}
-function toggleSettings(){document.getElementById('settings-panel').classList.toggle('hidden');}
-function unlockOwner(){
-  const pass=document.getElementById('owner-pass').value;
-  if(pass==='owner123'){
-    window.ownerUnlocked=true;
-    document.getElementById('owner-controls').classList.remove('hidden');
-    document.getElementById('owner-lock-msg').classList.add('hidden');
-    document.getElementById('gemini-key').value=window.appSettings.keys.gemini||'';
-    document.getElementById('openai-key').value=window.appSettings.keys.openai||'';
-  } else alert('Incorrect password.');
-}
-function saveLocalSettings(){
-  if(window.ownerUnlocked){
-    window.appSettings.keys.gemini=document.getElementById('gemini-key').value;
-    window.appSettings.keys.openai=document.getElementById('openai-key').value;
-  }
-  window.appSettings.aiProvider=document.getElementById('ai-provider-select-settings').value;
-  const scope = window.ownerUnlocked ? 'both' : 'local';
-  if(window.saveSettingsToDb) window.saveSettingsToDb(scope);
-  document.getElementById('ai-provider-select').value=window.appSettings.aiProvider;
-  document.getElementById('settings-panel').classList.add('hidden');
-}
-
-// --- AI FUNCTION ---
-async function callAI(prompt){
-  const provider=window.appSettings.aiProvider;
-  const key=window.appSettings.keys[provider.toLowerCase()];
-  if(!key) return "API Key missing!";
-  let text="";
-  try{
-    if(provider==='Gemini'){
-      const resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
-      });
-      const data=await resp.json();
-      if(data.candidates && data.candidates.length>0) text=data.candidates[0].content.parts[0].text;
-      else text="No response from Gemini.";
-    } else if(provider==='OpenAI'){
-      const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-        method:'POST',headers:{'Authorization':`Bearer ${key}`,'Content-Type':'application/json'},
-        body:JSON.stringify({model:"gpt-3.5-turbo",messages:[{role:"user",content:prompt}]})
-      });
-      const data=await resp.json();
-      text=data.choices[0].message.content;
-    }
-  }catch(e){text="Error: "+e.message;}
-  return text;
-}
-
-// AI Generators
-async function runGenerator(type){
-  const topic=document.getElementById(type+'-topic').value;
-  if(!topic) return alert("Enter topic!");
-  const resultDiv=document.getElementById(type+'-result');
-  resultDiv.innerHTML='<span class="text-yellow-400">Generating...</span>';
-  let prompt="";
-  if(type==='flashcard') prompt=`Create 5 flashcards for ${topic}. Format as Question: Answer pairs.`;
-  if(type==='quiz') prompt=`Create 3-question multiple choice quiz for ${topic} with answers.`;
-  if(type==='tutor') prompt=`Explain this topic in simple terms: ${topic}.`;
-  if(type==='quiz-helper') prompt=`Give tips and summary to study for this quiz: ${topic}.`;
-  const res=await callAI(prompt);
-  resultDiv.innerHTML=marked.parse(res);
-}
-
-// --- RESOURCE LIBRARY ---
-const resources={
-'Math':[
-{title:"Ratios Calculator",url:"https://www.calculatorsoup.com/calculators/math/ratios.php",type:"tool"},
-{title:"Integer Operations Game",url:"https://www.mathplayground.com/ASB_IntegerWarp.html",type:"game"},
-{title:"Equation Solver",url:"https://www.mathpapa.com/algebra-calculator.html",type:"tool"},
-{title:"Khan Academy 7th Grade Math",url:"https://www.khanacademy.org/math/cc-seventh-grade-math",type:"link"},
-{title:"Desmos Graphing Calculator",url:"https://www.desmos.com/calculator",type:"tool"},
-{title:"Prodigy Math Game",url:"https://www.prodigygame.com/",type:"game"}
-],
-'Science':[
-{title:"Periodic Table",url:"https://ptable.com/",type:"tool"},
-{title:"Cell Model Visualizer",url:"https://www.cellsalive.com/cells/cell_model.htm",type:"tool"},
-{title:"NASA Solar System",url:"https://eyes.nasa.gov/",type:"tool"},
-{title:"PhET Simulations",url:"https://phet.colorado.edu/",type:"tool"},
-{title:"National Geographic Kids",url:"https://kids.nationalgeographic.com/",type:"link"},
-{title:"Switch Zoo Game",url:"https://www.switchzoo.com/",type:"game"}
-],
-'History':[
-{title:"Ancient Civilizations",url:"https://www.historyforkids.net/ancient-history.html",type:"link"},
-{title:"Google Earth Voyager",url:"https://earth.google.com/web/voyager",type:"tool"},
-{title:"Mission US Game",url:"https://www.mission-us.org/",type:"game"},
-{title:"iCivics Government Games",url:"https://www.icivics.org/games",type:"game"}
-],
-'ELA':[
-{title:"Thesaurus.com",url:"https://www.thesaurus.com/",type:"tool"},
-{title:"Hemingway Editor",url:"https://hemingwayapp.com/",type:"tool"},
-{title:"Grammarly",url:"https://www.grammarly.com/",type:"tool"},
-{title:"Project Gutenberg",url:"https://www.gutenberg.org/",type:"link"},
-{title:"Quill.org",url:"https://www.quill.org/",type:"tool"}
-]
-};
-
-function loadResources(subject){
-  const list=document.getElementById('resource-list');
-  list.innerHTML='';
-  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.remove('bg-primary','text-white'));
-  document.getElementById(`btn-${subject}`).classList.add('bg-primary','text-white');
-  resources[subject].forEach(res=>{
-    const item=document.createElement('div');
-    item.className='bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-primary transition cursor-pointer';
-    item.innerHTML=`<div class="flex justify-between items-center"><div><h4 class="font-bold text-gray-200">${res.title}</h4><span class="text-xs uppercase font-semibold text-gray-500 tracking-wider">${res.type}</span></div><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></div>`;
-    item.onclick=()=>window.open(res.url,'_blank');
-    list.appendChild(item);
-  });
-}
-
-// --- CHANNEL PROMO POPUP ---
-function showPromo(){
-  if(localStorage.getItem('promoShown')) return;
-  localStorage.setItem('promoShown','1');
-  const overlay=document.createElement('div');
-  overlay.className='fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50';
-  overlay.innerHTML=`<div class="bg-gray-800 p-6 rounded-xl text-center max-w-sm">
-    <h2 class="text-xl font-bold mb-4 text-white">Support Me!</h2>
-    <p class="text-gray-300 mb-4">Subscribe to my channel: <strong>@cursedgamer2</strong></p>
-    <button onclick="window.open('https://www.youtube.com/@cursedgamer2','_blank');this.parentElement.parentElement.remove();" class="bg-red-600 text-white px-4 py-2 rounded font-bold">Subscribe Now</button>
-  </div>`;
-  document.body.appendChild(overlay);
-}
-
-// Run promo on load
-window.addEventListener('load',()=>{showPromo(); loadResources('Math');});
-</script>
-
 </head>
-<body class="p-4 sm:p-6">
+<body class="p-4">
 
-<header class="mb-4 flex justify-between items-center">
-<h1 class="text-3xl font-bold text-white">7th Grade Ultimate Hub</h1>
-<p class="text-gray-400 text-sm">Study. Focus. Achieve.</p>
-<div class="flex space-x-2">
-  <button onclick="toggleSettings()" class="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition">
-    ⚙️
-  </button>
+<!-- SUBSCRIBE PROMO POPUP (dismissible) -->
+<div id="support-popup" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden">
+  <div class="bg-gray-900 p-6 rounded-xl w-full max-w-lg border border-gray-700 text-center relative">
+    <button id="support-close-x" class="absolute right-3 top-3 text-gray-400 hover:text-white">✕</button>
+    <h2 class="text-2xl font-bold mb-2">Support Me — Subscribe!</h2>
+    <p class="text-gray-300 mb-4">Subscribe to my channel to support the project: <span class="font-semibold">@cursedgamer2</span></p>
+    <div class="flex justify-center gap-3">
+      <button id="subscribe-open" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-bold">Subscribe @cursedgamer2</button>
+      <button id="support-dismiss" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded">Dismiss</button>
+    </div>
+  </div>
 </div>
+
+<!-- TOP BAR -->
+<header class="flex items-center justify-between mb-4">
+  <div>
+    <h1 class="text-2xl font-bold">7th Grade Ultimate Hub</h1>
+    <p class="text-sm text-gray-400">Study • Focus • Achieve</p>
+  </div>
+  <div class="flex items-center gap-3">
+    <button id="open-settings" class="p-2 rounded bg-gray-800 hover:bg-gray-700">⚙️</button>
+    <button id="open-admin" class="p-2 rounded bg-gray-800 hover:bg-gray-700">🛠 Admin</button>
+    <button id="open-mini-browser" class="p-2 rounded bg-gray-800 hover:bg-gray-700">🌐 Mini Browser</button>
+  </div>
 </header>
 
-<!-- SETTINGS PANEL -->
-<div id="settings-panel" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
-<div class="bg-gray-800 p-6 rounded-xl max-w-md w-full border border-gray-700">
-<h2 class="text-xl font-bold mb-4 text-white">Settings</h2>
-<div class="space-y-4">
-  <div>
-    <label class="block text-sm text-gray-400">Theme Color</label>
-    <input type="color" id="color-picker" class="w-full h-10 rounded cursor-pointer" oninput="applyTheme(this.value)">
-  </div>
-  <div>
-    <label class="block text-sm text-gray-400 mb-1">AI Provider</label>
-    <select id="ai-provider-select-settings" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
-      <option value="OpenAI">OpenAI</option>
-      <option value="Gemini">Gemini</option>
-    </select>
-  </div>
-  <div class="border-t border-gray-700 pt-4">
-    <h3 class="text-lg font-bold text-red-400 mb-2">Owner Zone (API Keys)</h3>
-    <div id="owner-lock-msg">
-      <p class="text-sm text-gray-400 mb-2">Enter password to edit global keys.</p>
-      <div class="flex space-x-2">
-        <input type="password" id="owner-pass" class="flex-grow bg-gray-900 border border-gray-700 rounded p-2 text-white" placeholder="Password">
-        <button onclick="unlockOwner()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded font-bold">Unlock</button>
-      </div>
+<!-- DEC 1 NOTICE (enforced) -->
+<div id="dec1-notice" class="mb-4 hidden">
+  <div class="notice flex items-center justify-between">
+    <div>
+      <strong>Notice:</strong> Effective Dec 1 — you must be subscribed to @cursedgamer2 to use the AI Quiz Maker & AI Tutor.
+      (Click "I Subscribed" after subscribing.) 
     </div>
-    <div id="owner-controls" class="hidden space-y-3 mt-2">
-      <div>
-        <label class="block text-sm text-gray-400 mb-1">Gemini API Key</label>
-        <input type="password" id="gemini-key" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
-      </div>
-      <div>
-        <label class="block text-sm text-gray-400 mb-1">OpenAI API Key</label>
-        <input type="password" id="openai-key" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
-      </div>
+    <div class="flex items-center gap-2">
+      <button id="i-subscribed" class="bg-green-600 px-3 py-1 rounded font-bold">I Subscribed</button>
+      <button id="dismiss-notice" class="bg-gray-800 px-3 py-1 rounded">Dismiss</button>
     </div>
   </div>
-  <button onclick="saveLocalSettings()" class="w-full bg-primary text-white py-2 rounded font-bold hover:opacity-90 mt-4">Save & Close</button>
-</div>
-</div>
 </div>
 
 <!-- NAV -->
-<nav class="flex space-x-2 mb-4 overflow-x-auto pb-2 border-b border-gray-700">
-  <button onclick="openTab('ai-generators', this)" class="px-4 py-2 rounded-lg bg-gray-700 text-white font-medium whitespace-nowrap">⚡ AI Generators</button>
-  <button onclick="openTab('resources', this)" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 font-medium hover:bg-gray-700 whitespace-nowrap">📚 Resources</button>
+<nav class="flex gap-2 mb-4">
+  <button data-tab="ai" class="nav-btn px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">⚡ AI Tools</button>
+  <button data-tab="resources" class="nav-btn px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">📚 Resources</button>
+  <button data-tab="games" class="nav-btn px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">🕹️ Study Games</button>
+  <button data-tab="focus" class="nav-btn px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">🎧 Focus</button>
+  <button data-tab="dashboard" class="nav-btn px-3 py-2 rounded bg-gray-800 hover:bg-gray-700">📂 Dashboard</button>
 </nav>
 
-<div id="content-wrapper">
+<!-- MAIN CONTENT WRAPPER -->
+<main id="main" class="flex-1 overflow-auto">
 
-<!-- AI GENERATORS -->
-<div id="ai-generators" class="tab-content p-2">
-  <div class="flex flex-col h-full">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-      <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
-        <h3 class="text-lg font-bold text-primary mb-2">Flashcard Maker</h3>
-        <input type="text" id="flashcard-topic" class="w-full bg-gray-900 border border-gray-700 rounded p-2 mb-2 text-white" placeholder="Topic (e.g. Cell Biology)">
-        <button onclick="runGenerator('flashcard')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 rounded">Generate Cards</button>
-        <div id="flashcard-result" class="mt-2 text-sm text-gray-300 max-h-32 overflow-y-auto"></div>
+  <!-- AI TOOLS TAB -->
+  <section id="tab-ai" class="tab-content active">
+    <div class="grid md:grid-cols-2 gap-4">
+      <!-- Flashcards -->
+      <div class="card">
+        <h3 class="font-bold mb-2">AI Flashcard Maker</h3>
+        <input id="flashcard-topic" placeholder="Topic (e.g. Cell Biology)" class="w-full mb-2 p-2 bg-gray-900 rounded" />
+        <div class="flex gap-2">
+          <button id="gen-flash" class="bg-indigo-600 px-3 py-2 rounded">Generate</button>
+          <button id="save-flash" class="bg-gray-700 px-3 py-2 rounded">Save</button>
+        </div>
+        <div id="flash-result" class="mt-3 text-sm text-gray-200 max-h-48 overflow-auto"></div>
       </div>
 
-      <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
-        <h3 class="text-lg font-bold text-primary mb-2">Quiz Maker</h3>
-        <input type="text" id="quiz-topic" class="w-full bg-gray-900 border border-gray-700 rounded p-2 mb-2 text-white" placeholder="Topic (e.g. American Revolution)">
-        <button onclick="runGenerator('quiz')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-1 rounded">Generate Quiz</button>
-        <div id="quiz-result" class="mt-2 text-sm text-gray-300 max-h-32 overflow-y-auto"></div>
+      <!-- Quiz Maker -->
+      <div class="card">
+        <h3 class="font-bold mb-2">AI Quiz Maker <span id="quiz-locked-badge" class="text-sm ml-2 text-yellow-400 hidden">Locked by Dec 1 rule</span></h3>
+        <input id="quiz-topic" placeholder="Topic (e.g. American Revolution)" class="w-full mb-2 p-2 bg-gray-900 rounded" />
+        <div class="flex gap-2">
+          <button id="gen-quiz" class="bg-green-600 px-3 py-2 rounded">Generate</button>
+          <button id="save-quiz" class="bg-gray-700 px-3 py-2 rounded">Save</button>
+        </div>
+        <div id="quiz-result" class="mt-3 text-sm text-gray-200 max-h-48 overflow-auto"></div>
       </div>
 
-      <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
-        <h3 class="text-lg font-bold text-primary mb-2">AI Tutor</h3>
-        <input type="text" id="tutor-topic" class="w-full bg-gray-900 border border-gray-700 rounded p-2 mb-2 text-white" placeholder="Topic (e.g. Fractions)">
-        <button onclick="runGenerator('tutor')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 rounded">Teach Me</button>
-        <div id="tutor-result" class="mt-2 text-sm text-gray-300 max-h-32 overflow-y-auto"></div>
+      <!-- AI Tutor -->
+      <div class="card">
+        <h3 class="font-bold mb-2">AI Tutor <span id="tutor-locked-badge" class="text-sm ml-2 text-yellow-400 hidden">Locked by Dec 1 rule</span></h3>
+        <input id="tutor-topic" placeholder="Ask a question or enter a topic" class="w-full mb-2 p-2 bg-gray-900 rounded" />
+        <div class="flex gap-2">
+          <button id="gen-tutor" class="bg-purple-600 px-3 py-2 rounded">Ask Tutor</button>
+          <button id="save-tutor" class="bg-gray-700 px-3 py-2 rounded">Save</button>
+        </div>
+        <div id="tutor-result" class="mt-3 text-sm text-gray-200 max-h-48 overflow-auto"></div>
       </div>
 
-      <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
-        <h3 class="text-lg font-bold text-primary mb-2">Quiz Study Helper</h3>
-        <input type="text" id="quiz-helper-topic" class="w-full bg-gray-900 border border-gray-700 rounded p-2 mb-2 text-white" placeholder="Quiz Name or Topic">
-        <button onclick="runGenerator('quiz-helper')" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-1 rounded">Get Study Tips</button>
-        <div id="quiz-helper-result" class="mt-2 text-sm text-gray-300 max-h-32 overflow-y-auto"></div>
+      <!-- Quiz Study Helper -->
+      <div class="card">
+        <h3 class="font-bold mb-2">Quiz Study Helper</h3>
+        <input id="helper-topic" placeholder="Quiz name or topic to study" class="w-full mb-2 p-2 bg-gray-900 rounded" />
+        <div class="flex gap-2">
+          <button id="gen-helper" class="bg-yellow-500 px-3 py-2 rounded">Get Study Tips</button>
+          <button id="save-helper" class="bg-gray-700 px-3 py-2 rounded">Save</button>
+        </div>
+        <div id="helper-result" class="mt-3 text-sm text-gray-200 max-h-48 overflow-auto"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESOURCES -->
+  <section id="tab-resources" class="tab-content">
+    <div class="flex gap-3 mb-3">
+      <button id="btn-Math" class="px-3 py-1 rounded bg-primary">Math</button>
+      <button id="btn-Science" class="px-3 py-1 rounded bg-gray-800">Science</button>
+      <button id="btn-History" class="px-3 py-1 rounded bg-gray-800">History</button>
+      <button id="btn-ELA" class="px-3 py-1 rounded bg-gray-800">ELA</button>
+    </div>
+    <div id="resource-list" class="grid sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+  </section>
+
+  <!-- GAMES -->
+  <section id="tab-games" class="tab-content">
+    <h3 class="font-bold mb-3">Study Games (Open in new tab)</h3>
+    <div id="game-list" class="grid sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+  </section>
+
+  <!-- FOCUS -->
+  <section id="tab-focus" class="tab-content">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card">
+        <h3 class="font-bold mb-2">Focus Timer</h3>
+        <div class="flex gap-2 mb-2">
+          <button onclick="startTimer(25)" class="bg-blue-600 px-3 py-2 rounded">25m</button>
+          <button onclick="startTimer(50)" class="bg-blue-600 px-3 py-2 rounded">50m</button>
+          <button onclick="resetTimer()" class="bg-gray-700 px-3 py-2 rounded">Reset</button>
+        </div>
+        <div id="timer-display" class="text-3xl font-bold">00:00</div>
       </div>
 
+      <div class="card">
+        <h3 class="font-bold mb-2">Focus Noise (Tone.js)</h3>
+        <button id="noise-btn" class="bg-gray-700 px-3 py-2 rounded">Start Focus Noise</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD (localStorage) -->
+  <section id="tab-dashboard" class="tab-content">
+    <h3 class="font-bold mb-3">My Saved Study Items</h3>
+    <div id="dashboard-list" class="space-y-3"></div>
+    <div class="mt-4">
+      <button id="export-data" class="bg-gray-700 px-3 py-2 rounded">Export JSON</button>
+      <button id="import-data" class="bg-gray-700 px-3 py-2 rounded">Import JSON</button>
+      <input id="import-file" type="file" accept="application/json" class="hidden"/>
+    </div>
+  </section>
+
+</main>
+
+<!-- SETTINGS PANEL (modal) -->
+<div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-70 z-40 flex items-center justify-center hidden">
+  <div class="bg-gray-900 p-6 rounded-xl w-full max-w-md border border-gray-700">
+    <h3 class="text-xl font-bold mb-3">Settings</h3>
+    <div class="mb-3">
+      <label class="block text-sm text-gray-300 mb-1">Theme Color</label>
+      <input id="color-picker" type="color" class="w-full h-10 rounded"/>
+    </div>
+    <div class="mb-3">
+      <label class="block text-sm text-gray-300 mb-1">AI Provider</label>
+      <select id="ai-provider-select-settings" class="w-full p-2 rounded bg-gray-800">
+        <option value="OpenAI">OpenAI</option>
+        <option value="Gemini">Gemini</option>
+      </select>
+    </div>
+
+    <div class="border-t border-gray-800 pt-3">
+      <h4 class="font-bold text-red-400 mb-2">Owner Zone (API Keys)</h4>
+      <div id="owner-lock-msg">
+        <p class="text-sm text-gray-400 mb-2">Enter password to edit global keys.</p>
+        <div class="flex gap-2">
+          <input id="owner-pass" type="password" placeholder="Password" class="flex-1 p-2 rounded bg-gray-800"/>
+          <button id="unlock-owner-btn" class="bg-gray-700 px-3 py-2 rounded">Unlock</button>
+        </div>
+      </div>
+      <div id="owner-controls" class="mt-3 hidden space-y-2">
+        <div>
+          <label class="text-sm text-gray-300">OpenAI Key</label>
+          <input id="openai-key" type="password" placeholder="sk-..." class="w-full p-2 rounded bg-gray-800"/>
+        </div>
+        <div>
+          <label class="text-sm text-gray-300">Gemini Key</label>
+          <input id="gemini-key" type="password" placeholder="Gemini key" class="w-full p-2 rounded bg-gray-800"/>
+        </div>
+        <div class="flex gap-2">
+          <button id="save-keys" class="bg-green-600 px-3 py-2 rounded">Save Keys</button>
+          <button id="export-keys" class="bg-gray-700 px-3 py-2 rounded">Export Keys</button>
+          <button id="import-keys" class="bg-gray-700 px-3 py-2 rounded">Import Keys</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-end gap-2">
+      <button id="settings-save" class="bg-primary px-4 py-2 rounded">Save & Close</button>
+      <button id="settings-cancel" class="bg-gray-700 px-4 py-2 rounded">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- RESOURCES -->
-<div id="resources" class="tab-content hidden p-2">
-  <div class="flex space-x-2 mb-4 overflow-x-auto">
-    <button id="btn-Math" onclick="loadResources('Math')" class="subject-btn px-3 py-1 rounded bg-primary text-white font-medium">Math</button>
-    <button id="btn-Science" onclick="loadResources('Science')" class="subject-btn px-3 py-1 rounded bg-gray-700 text-white font-medium">Science</button>
-    <button id="btn-History" onclick="loadResources('History')" class="subject-btn px-3 py-1 rounded bg-gray-700 text-white font-medium">History</button>
-    <button id="btn-ELA" onclick="loadResources('ELA')" class="subject-btn px-3 py-1 rounded bg-gray-700 text-white font-medium">ELA</button>
+<!-- ADMIN PANEL (owner only modal) -->
+<div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-70 z-40 flex items-center justify-center hidden">
+  <div class="bg-gray-900 p-6 rounded-xl w-full max-w-lg border border-gray-700">
+    <h3 class="text-xl font-bold mb-3">Admin Panel</h3>
+    <p class="text-sm text-gray-300 mb-3">Owner: use password <code>owner123</code> to unlock settings in Settings panel.</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card">
+        <h4 class="font-bold mb-2">Site Controls</h4>
+        <button id="clear-dashboard" class="bg-red-600 px-3 py-2 rounded w-full">Clear All Dashboard Items</button>
+      </div>
+      <div class="card">
+        <h4 class="font-bold mb-2">Quick Keys</h4>
+        <button id="fill-demo-keys" class="bg-gray-700 px-3 py-2 rounded w-full">Fill Demo Keys (placeholder)</button>
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-end">
+      <button id="admin-close" class="bg-gray-700 px-3 py-2 rounded">Close</button>
+    </div>
   </div>
-  <div id="resource-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 </div>
 
-</div> <!-- END content-wrapper -->
+<!-- MINI BROWSER -->
+<div id="mini-browser-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-start justify-center hidden">
+  <div class="bg-gray-900 rounded-xl w-full max-w-3xl mt-8 p-4 border border-gray-700">
+    <div class="flex gap-2 mb-3">
+      <input id="mini-url" class="flex-1 p-2 rounded bg-gray-800" placeholder="https://example.com"/>
+      <button id="mini-go" class="bg-primary px-3 py-2 rounded">Go</button>
+      <button id="mini-close" class="bg-gray-700 px-3 py-2 rounded">Close</button>
+    </div>
+    <iframe id="mini-frame" src="about:blank" class="w-full h-[60vh] rounded"></iframe>
+  </div>
+</div>
 
+<script>
+/* ---------------------
+   STATE & UTILITIES
+   --------------------- */
+const STORAGE_PREFIX = 'sg2_'; // study hub local prefix
+const KEYS_STORE = STORAGE_PREFIX + 'keys';
+const SETTINGS_STORE = STORAGE_PREFIX + 'settings';
+const DASHBOARD_STORE = STORAGE_PREFIX + 'dashboard';
+const SUBSCRIBED_FLAG = STORAGE_PREFIX + 'subscribed';
+
+// default app state
+const app = {
+  aiProvider: 'OpenAI',
+  keys: { openai: '', gemini: '' },
+};
+function saveSettingsToStorage(){ localStorage.setItem(SETTINGS_STORE, JSON.stringify({ aiProvider: app.aiProvider })); }
+function loadSettingsFromStorage(){
+  const s = localStorage.getItem(SETTINGS_STORE);
+  if(s) {
+    try{ const o=JSON.parse(s); if(o.aiProvider) app.aiProvider=o.aiProvider; document.getElementById('ai-provider-select-settings').value = app.aiProvider; }
+    catch(e){}
+  }
+}
+function saveKeysToStorage(){ localStorage.setItem(KEYS_STORE, JSON.stringify(app.keys)); }
+function loadKeysFromStorage(){ const s = localStorage.getItem(KEYS_STORE); if(s){ try{ app.keys = JSON.parse(s); }catch(e){} } }
+
+/* ---------------------
+   STARTUP
+   --------------------- */
+loadKeysFromStorage();
+loadSettingsFromStorage();
+document.addEventListener('DOMContentLoaded', ()=> {
+  // show popup once per session unless dismissed earlier
+  if(!sessionStorage.getItem('suppressedPopup')) {
+    document.getElementById('support-popup').classList.remove('hidden');
+  }
+  setupNav();
+  setupResourcesAndGames();
+  setupDecNotice();
+  applyThemeFromPicker();
+  renderDashboard();
+});
+
+/* ---------------------
+   NAV & TABS
+   --------------------- */
+function setupNav(){
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.addEventListener('click', ()=> {
+      const tab = b.getAttribute('data-tab');
+      showTab(tab);
+    });
+  });
+  // show default 'ai'
+  showTab('ai');
+
+  // settings open
+  document.getElementById('open-settings').addEventListener('click', ()=> openSettingsModal());
+  document.getElementById('open-admin').addEventListener('click', ()=> openAdminModal());
+  document.getElementById('open-mini-browser').addEventListener('click', ()=> openMiniBrowser());
+}
+
+/* show tab by id */
+function showTab(name){
+  document.querySelectorAll('.tab-content').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('tab-' + (name==='ai'?'ai':name));
+  if(el) el.classList.add('active');
+}
+
+/* ---------------------
+   SUBSCRIBE POPUP
+   --------------------- */
+document.getElementById('subscribe-open').addEventListener('click', ()=> {
+  window.open('https://www.youtube.com/@cursedgamer2','_blank');
+  // don't auto-mark subscribed - user must click I Subscribed banner
+});
+document.getElementById('support-dismiss').addEventListener('click', ()=> {
+  sessionStorage.setItem('suppressedPopup','1');
+  document.getElementById('support-popup').classList.add('hidden');
+});
+document.getElementById('support-close-x').addEventListener('click', ()=> {
+  sessionStorage.setItem('suppressedPopup','1');
+  document.getElementById('support-popup').classList.add('hidden');
+});
+
+/* ---------------------
+   DEC 1 NOTICE / SUBSCRIPTION RULE
+   --------------------- */
+function setupDecNotice(){
+  const now = new Date();
+  const dec1 = new Date(now.getFullYear(), 11, 1); // Dec 1 (month is 0-indexed)
+  const noticeEl = document.getElementById('dec1-notice');
+  if(now >= dec1){
+    // show notice if not dismissed permanently
+    const dismissed = localStorage.getItem(STORAGE_PREFIX + 'noticeDismissed');
+    if(!dismissed) noticeEl.classList.remove('hidden');
+    // show locked badges
+    document.getElementById('quiz-locked-badge').classList.remove('hidden');
+    document.getElementById('tutor-locked-badge').classList.remove('hidden');
+  }
+
+  document.getElementById('dismiss-notice').addEventListener('click', ()=> {
+    localStorage.setItem(STORAGE_PREFIX + 'noticeDismissed','1');
+    noticeEl.classList.add('hidden');
+  });
+  document.getElementById('i-subscribed').addEventListener('click', ()=> {
+    // can't verify; user confirms by clicking
+    localStorage.setItem(SUBSCRIBED_FLAG,'1');
+    alert('Thanks! You are marked as subscribed locally. You can now use the Quiz Maker and Tutor.');
+    noticeEl.classList.add('hidden');
+  });
+}
+
+/* check subscription enforcement */
+function isSubscribedConfirmed(){
+  return !!localStorage.getItem(SUBSCRIBED_FLAG);
+}
+
+/* ---------------------
+   SETTINGS MODAL
+   --------------------- */
+function openSettingsModal(){
+  // sync UI with state
+  document.getElementById('color-picker').value = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#3b82f6';
+  document.getElementById('ai-provider-select-settings').value = app.aiProvider;
+  // load keys if exist
+  loadKeysFromStorage();
+  document.getElementById('openai-key').value = app.keys.openai || '';
+  document.getElementById('gemini-key').value = app.keys.gemini || '';
+  document.getElementById('settings-modal').classList.remove('hidden');
+}
+function closeSettingsModal(){ document.getElementById('settings-modal').classList.add('hidden'); }
+
+document.getElementById('settings-cancel').addEventListener('click', ()=> closeSettingsModal());
+document.getElementById('settings-save').addEventListener('click', ()=>{
+  // apply theme
+  const color = document.getElementById('color-picker').value;
+  document.documentElement.style.setProperty('--primary', color);
+  // provider
+  app.aiProvider = document.getElementById('ai-provider-select-settings').value;
+  saveSettingsToStorage();
+  // if owner unlocked, also save keys automatically when they click Save
+  if(window.ownerUnlocked){
+    app.keys.openai = document.getElementById('openai-key').value.trim();
+    app.keys.gemini = document.getElementById('gemini-key').value.trim();
+    saveKeysToStorage();
+  }
+  closeSettingsModal();
+});
+
+/* Owner unlock / keys */
+document.getElementById('unlock-owner-btn').addEventListener('click', ()=>{
+  const pass = document.getElementById('owner-pass').value;
+  if(pass === 'owner123'){
+    window.ownerUnlocked = true;
+    document.getElementById('owner-controls').classList.remove('hidden');
+    document.getElementById('owner-lock-msg').classList.add('hidden');
+    // preload keys into fields
+    loadKeysFromStorage();
+    document.getElementById('openai-key').value = app.keys.openai || '';
+    document.getElementById('gemini-key').value = app.keys.gemini || '';
+  } else {
+    alert('Incorrect password.');
+  }
+});
+document.getElementById('save-keys').addEventListener('click', ()=>{
+  if(!window.ownerUnlocked){ alert('Unlock with owner password first.'); return; }
+  app.keys.openai = document.getElementById('openai-key').value.trim();
+  app.keys.gemini = document.getElementById('gemini-key').value.trim();
+  saveKeysToStorage();
+  alert('Keys saved locally.');
+});
+document.getElementById('export-keys').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(app.keys,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'studyhub-keys.json'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('import-keys').addEventListener('click', ()=>{
+  const input = document.createElement('input'); input.type='file'; input.accept='application/json';
+  input.onchange = e => {
+    const f = e.target.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try{
+        const obj = JSON.parse(ev.target.result);
+        if(obj.openai) app.keys.openai = obj.openai;
+        if(obj.gemini) app.keys.gemini = obj.gemini;
+        saveKeysToStorage();
+        alert('Keys imported.');
+      }catch(err){ alert('Invalid file.'); }
+    };
+    reader.readAsText(f);
+  };
+  input.click();
+});
+
+/* ---------------------
+   MINI BROWSER
+   --------------------- */
+function openMiniBrowser(){
+  document.getElementById('mini-browser-modal').classList.remove('hidden');
+  document.getElementById('mini-frame').src = 'about:blank';
+}
+document.getElementById('mini-close').addEventListener('click', ()=> document.getElementById('mini-browser-modal').classList.add('hidden'));
+document.getElementById('mini-go').addEventListener('click', ()=>{
+  let url = document.getElementById('mini-url').value.trim();
+  if(!url) return;
+  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  document.getElementById('mini-frame').src = url;
+});
+
+/* ---------------------
+   RESOURCES & GAMES
+   --------------------- */
+const resources = {
+  Math: [
+    {title:'Khan Academy — 7th Grade Math', url:'https://www.khanacademy.org/math/cc-seventh-grade-math', type:'link'},
+    {title:'Desmos Graphing Calculator', url:'https://www.desmos.com/calculator', type:'tool'},
+    {title:'Prodigy Math Game', url:'https://www.prodigygame.com/', type:'game'}
+  ],
+  Science: [
+    {title:'PhET Simulations', url:'https://phet.colorado.edu/', type:'tool'},
+    {title:'NASA Eyes on the Solar System', url:'https://eyes.nasa.gov/', type:'tool'},
+    {title:'Science Kids', url:'https://www.sciencekids.co.nz/', type:'link'}
+  ],
+  History: [
+    {title:'History for Kids — Ancient Civilizations', url:'https://www.historyforkids.net/ancient-history.html', type:'link'},
+    {title:'iCivics (Gov Games)', url:'https://www.icivics.org/games', type:'game'}
+  ],
+  ELA: [
+    {title:'Project Gutenberg', url:'https://www.gutenberg.org/', type:'link'},
+    {title:'Quill.org', url:'https://www.quill.org/', type:'tool'}
+  ]
+};
+const games = {
+  Math: [
+    {title:'Integer Warp (MathPlayground)', url:'https://www.mathplayground.com/ASB_IntegerWarp.html'},
+    {title:'Fraction Matcher (Math is Fun Activities)', url:'https://www.mathsisfun.com/'},
+  ],
+  Science: [
+    {title:'Build a Cell (Cells Alive)', url:'https://www.cellsalive.com/cells/cell_model.htm'},
+    {title:'Switch Zoo', url:'https://www.switchzoo.com/'}
+  ],
+  History: [
+    {title:'Mission US', url:'https://www.mission-us.org/'},
+    {title:'Google Earth Voyager', url:'https://earth.google.com/web/voyager'}
+  ],
+  ELA: [
+    {title:'Storybird / Storyboard That', url:'https://www.storyboardthat.com/'}
+  ]
+};
+
+function setupResourcesAndGames(){
+  // resource buttons
+  ['Math','Science','History','ELA'].forEach(sub=>{
+    document.getElementById('btn-' + sub).addEventListener('click', ()=> loadResources(sub));
+  });
+  loadResources('Math');
+
+  // load games
+  const gl = document.getElementById('game-list');
+  gl.innerHTML = '';
+  Object.keys(games).forEach(cat=>{
+    games[cat].forEach(g=>{
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `<h4 class="font-bold">${g.title}</h4><p class="text-sm text-gray-400 mb-2">${cat}</p><a class="text-primary underline" href="${g.url}" target="_blank">Open</a>`;
+      gl.appendChild(d);
+    });
+  });
+}
+function loadResources(subject){
+  const list = document.getElementById('resource-list');
+  list.innerHTML = '';
+  resources[subject].forEach(r=>{
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.innerHTML = `<h4 class="font-bold">${r.title}</h4><p class="text-sm text-gray-400">${r.type}</p><a class="text-primary underline" href="${r.url}" target="_blank">Open</a>`;
+    list.appendChild(d);
+  });
+}
+
+/* ---------------------
+   AI CALLS (OpenAI & Gemini)
+   --------------------- */
+/* Warning: these calls use client-side keys. For production, proxy via server. */
+async function callAI(promptText, modelOpts = {}) {
+  const provider = app.aiProvider || document.getElementById('ai-provider-select-settings').value || 'OpenAI';
+  const keys = app.keys;
+  // ensure latest keys loaded from storage
+  loadKeysFromStorage();
+
+  if(provider === 'OpenAI') {
+    const key = app.keys.openai || '';
+    if(!key) return 'Error: OpenAI API key not set in Admin / Settings.';
+    try{
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify({
+          model: modelOpts.model || 'gpt-3.5-turbo',
+          messages: [{role:'user', content: promptText}],
+          temperature: modelOpts.temperature ?? 0.7,
+          max_tokens: modelOpts.max_tokens ?? 600
+        })
+      });
+      const data = await resp.json();
+      if(data.error) return `Error: ${data.error.message || JSON.stringify(data.error)}`;
+      return data.choices?.[0]?.message?.content || JSON.stringify(data);
+    } catch(e){ return 'Error: ' + e.message; }
+  } else if(provider === 'Gemini') {
+    const key = app.keys.gemini || '';
+    if(!key) return 'Error: Gemini API key not set in Admin / Settings.';
+    try{
+      // Gemini uses API key in query param for the simple GET/POST usage shown earlier
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(key);
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+      });
+      const data = await resp.json();
+      if(data.error) return 'Error: ' + (data.error.message || JSON.stringify(data.error));
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(data);
+    } catch(e){ return 'Error: ' + e.message; }
+  } else {
+    return 'Error: Unknown provider selected.';
+  }
+}
+
+/* ---------------------
+   GENERATORS: wiring UI
+   --------------------- */
+async function generateAndShow(idTopic, idResult, promptBuilder, lockedIfDec1=false){
+  // enforce Dec 1 rule for certain features
+  const now = new Date();
+  const dec1 = new Date(now.getFullYear(), 11, 1);
+  if(lockedIfDec1 && now >= dec1 && !isSubscribedConfirmed()){
+    alert('This feature requires subscription to @cursedgamer2 (see notice). Click "I Subscribed" to enable.');
+    return;
+  }
+
+  const topic = document.getElementById(idTopic).value.trim();
+  if(!topic){ alert('Enter a topic or question.'); return; }
+  const resultEl = document.getElementById(idResult);
+  resultEl.innerHTML = '<em class="text-yellow-300">Thinking...</em>';
+  const prompt = promptBuilder(topic);
+  const out = await callAI(prompt);
+  resultEl.innerHTML = marked.parse(out || 'No response.');
+  return out;
+}
+
+/* flash */
+document.getElementById('gen-flash').addEventListener('click', async ()=>{
+  const out = await generateAndShow('flashcard-topic', 'flash-result', t => `Create 5 flashcards for the topic: ${t}. Format as Question: Answer pairs.`);
+});
+document.getElementById('save-flash').addEventListener('click', ()=> saveGenerated('flash', 'flashcard-topic', 'flash-result'));
+
+/* quiz (locked by Dec 1 rule) */
+document.getElementById('gen-quiz').addEventListener('click', async ()=>{
+  await generateAndShow('quiz-topic','quiz-result', t => `Create a 3-question multiple choice quiz about ${t}. Provide the answer key.`, true);
+});
+document.getElementById('save-quiz').addEventListener('click', ()=> saveGenerated('quiz','quiz-topic','quiz-result'));
+
+/* tutor (locked by Dec 1 rule) */
+document.getElementById('gen-tutor').addEventListener('click', async ()=>{
+  await generateAndShow('tutor-topic','tutor-result', t => `Explain and teach this topic in simple terms: ${t}`, true);
+});
+document.getElementById('save-tutor').addEventListener('click', ()=> saveGenerated('tutor','tutor-topic','tutor-result'));
+
+/* helper */
+document.getElementById('gen-helper').addEventListener('click', async ()=>{
+  await generateAndShow('helper-topic','helper-result', t => `Give concise study tips, a short summary, and 5 practice questions for: ${t}`);
+});
+document.getElementById('save-helper').addEventListener('click', ()=> saveGenerated('helper','helper-topic','helper-result'));
+
+/* save generated content to local dashboard */
+function saveGenerated(type, topicId, resultId){
+  const topic = document.getElementById(topicId).value.trim();
+  const content = document.getElementById(resultId).innerHTML.trim();
+  if(!content){ alert('Nothing to save. Generate first.'); return; }
+  const store = JSON.parse(localStorage.getItem(DASHBOARD_STORE) || '[]');
+  store.unshift({ id: Date.now(), type, topic, content });
+  localStorage.setItem(DASHBOARD_STORE, JSON.stringify(store));
+  alert('Saved to Dashboard.');
+  renderDashboard();
+}
+
+/* ---------------------
+   DASHBOARD
+   --------------------- */
+function renderDashboard(){
+  const listEl = document.getElementById('dashboard-list');
+  listEl.innerHTML = '';
+  const store = JSON.parse(localStorage.getItem(DASHBOARD_STORE) || '[]');
+  if(store.length === 0){
+    listEl.innerHTML = '<div class="text-gray-400">No saved items yet.</div>';
+    return;
+  }
+  store.forEach(item=>{
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.innerHTML = `<div class="flex justify-between items-start"><div><strong class="capitalize">${item.type}</strong> · <span class="text-gray-400">${item.topic}</span></div>
+      <div class="flex gap-2"><button data-id="${item.id}" class="preview-btn bg-gray-700 px-2 py-1 rounded">Preview</button><button data-id="${item.id}" class="del-btn bg-red-600 px-2 py-1 rounded">Delete</button></div></div>
+      <div class="mt-2 text-sm text-gray-300 hidden content" id="content-${item.id}">${item.content}</div>`;
+    listEl.appendChild(d);
+  });
+
+  // attach listeners
+  document.querySelectorAll('.preview-btn').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      const id = ev.target.getAttribute('data-id');
+      const el = document.getElementById('content-'+id);
+      if(el) el.classList.toggle('hidden');
+    });
+  });
+  document.querySelectorAll('.del-btn').forEach(b=>{
+    b.addEventListener('click', ev=>{
+      const id = +ev.target.getAttribute('data-id');
+      let store = JSON.parse(localStorage.getItem(DASHBOARD_STORE) || '[]');
+      store = store.filter(x=> x.id !== id);
+      localStorage.setItem(DASHBOARD_STORE, JSON.stringify(store));
+      renderDashboard();
+    });
+  });
+}
+
+/* export / import dashboard */
+document.getElementById('export-data').addEventListener('click', ()=>{
+  const blob = new Blob([localStorage.getItem(DASHBOARD_STORE) || '[]'], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'studyhub-data.json'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('import-data').addEventListener('click', ()=> document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader(); r.onload = ev=>{
+    try{
+      const arr = JSON.parse(ev.target.result);
+      if(!Array.isArray(arr)) throw new Error('Invalid');
+      localStorage.setItem(DASHBOARD_STORE, JSON.stringify(arr.concat(JSON.parse(localStorage.getItem(DASHBOARD_STORE) || '[]'))));
+      renderDashboard();
+      alert('Imported.');
+    }catch(err){ alert('Invalid file.'); }
+  }; r.readAsText(f);
+});
+
+/* ---------------------
+   ADMIN PANEL events
+   --------------------- */
+document.getElementById('open-admin').addEventListener('click', ()=> openAdminModal());
+function openAdminModal(){ document.getElementById('admin-modal').classList.remove('hidden'); }
+document.getElementById('admin-close').addEventListener('click', ()=> document.getElementById('admin-modal').classList.add('hidden'));
+document.getElementById('clear-dashboard').addEventListener('click', ()=> {
+  if(confirm('Delete all saved dashboard items?')){ localStorage.removeItem(DASHBOARD_STORE); renderDashboard(); alert('Cleared.'); }
+});
+document.getElementById('fill-demo-keys').addEventListener('click', ()=> {
+  if(!window.ownerUnlocked){ alert('Unlock owner first in Settings.'); return; }
+  document.getElementById('openai-key').value = 'sk-REPLACE_WITH_YOURS';
+  document.getElementById('gemini-key').value = 'GEMINI-KEY-REPLACE';
+});
+
+/* ---------------------
+   FOCUS TIMER & Noise
+   --------------------- */
+let timerInterval, timeLeft;
+function startTimer(minutes){
+  clearInterval(timerInterval); timeLeft = minutes*60; updateTimerDisplay();
+  timerInterval = setInterval(()=>{ timeLeft--; updateTimerDisplay(); if(timeLeft<=0){ clearInterval(timerInterval); new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play(); alert("Time's up!"); } }, 1000);
+}
+function updateTimerDisplay(){ const m = Math.floor((timeLeft||0)/60); const s = (timeLeft||0)%60; document.getElementById('timer-display').textContent = `${m}:${s<10?'0':''}${s}`; }
+function resetTimer(){ clearInterval(timerInterval); timeLeft=0; updateTimerDisplay(); }
+
+let noiseSynth = null;
+document.getElementById('noise-btn').addEventListener('click', ()=>{
+  if(noiseSynth){ noiseSynth.stop(); noiseSynth.dispose(); noiseSynth = null; document.getElementById('noise-btn').textContent = 'Start Focus Noise'; return; }
+  Tone.start();
+  noiseSynth = new Tone.Noise('pink').toDestination();
+  const filter = new Tone.AutoFilter({ frequency:'8m', min:800, max:15000 }).connect(Tone.Master);
+  noiseSynth.connect(filter); noiseSynth.start();
+  document.getElementById('noise-btn').textContent = 'Stop Focus Noise';
+});
+
+/* ---------------------
+   THEME PERSISTENCE
+   --------------------- */
+function applyThemeFromPicker(){
+  // set initial primary variable
+  const stored = getComputedStyle(document.documentElement).getPropertyValue('--primary');
+  if(!stored) document.documentElement.style.setProperty('--primary', '#3b82f6');
+  // when color change, update CSS var
+  document.getElementById('color-picker').addEventListener('input', (e)=> {
+    document.documentElement.style.setProperty('--primary', e.target.value);
+  });
+}
+
+/* ---------------------
+   HELPERS / KEYS persistence
+   --------------------- */
+function saveKeysToStorage(){ localStorage.setItem(KEYS_STORE, JSON.stringify(app.keys)); }
+function loadKeysFromStorage(){ const s = localStorage.getItem(KEYS_STORE); if(s) try{ app.keys = JSON.parse(s); }catch(e){} }
+
+/* ---------------------
+   INITIAL render
+   --------------------- */
+renderDashboard();
+</script>
 </body>
 </html>
