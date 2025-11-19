@@ -3,617 +3,579 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Portal - Study Edition</title>
+    <title>7th Grade Ultimate Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/tone@14.9.15/build/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
-    <style>
-        :root { --primary-color: #3b82f6; }
-        .bg-primary { background-color: var(--primary-color); }
-        .text-primary { color: var(--primary-color); }
-        .border-primary { border-color: var(--primary-color); }
-        .hover-bg-primary:hover { background-color: var(--primary-color); }
-        
-        html, body { height: 100%; overflow: hidden; }
-        body { font-family: 'Inter', sans-serif; background-color: #1f2937; color: #f3f4f6; display: flex; flex-direction: column; }
-        .card { background-color: #374151; border-radius: 0.75rem; box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); }
-        
-        /* Main Content Area */
-        #main-content-area { flex-grow: 1; overflow-y: auto; padding-bottom: 2rem; }
-        
-        /* Game Container */
-        .game-container { width: 100%; height: calc(100vh - 220px); max-width: 1200px; margin: 0 auto; overflow: hidden; border-radius: 0.75rem; border: 3px solid var(--primary-color); position: relative; background: #111827;}
-        
-        /* Inputs */
-        .input-dark { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #4b5563; background: #111827; color: #f3f4f6; margin-top: 5px; }
-        .input-dark:focus { outline: none; border-color: var(--primary-color); }
-
-        /* Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .modal-content { background-color: #1f2937; padding: 2rem; border-radius: 1rem; max-width: 400px; text-align: center; border: 2px solid var(--primary-color); }
-        
-        .hidden { display: none !important; }
-        .locked { opacity: 0.5; pointer-events: none; }
-
-        /* Game Specific Styles */
-        .memory-card { perspective: 1000px; cursor: pointer; }
-        .memory-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
-        .memory-card.flipped .memory-card-inner { transform: rotateY(180deg); }
-        .memory-card-front, .memory-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem; border: 2px solid #4b5563; }
-        .memory-card-front { background-color: #374151; color: white; transform: rotateY(180deg); font-size: 2rem; }
-        .memory-card-back { background-color: #1f2937; color: transparent; }
-    </style>
-
-    <!-- 1. STANDARD SCRIPT for UI -->
-    <script>
-        // -- Global State --
-        window.currentTheme = '#3b82f6';
-        window.GLOBAL_KEY = ''; 
-        window.ownerUnlocked = false;
-
-        // -- UI Functions --
-        function openTab(tabName, button) {
-            ['bookmarklets', 'games', 'study', 'settings'].forEach(t => {
-                const el = document.getElementById(t);
-                if(el) el.classList.add('hidden');
-            });
-            const target = document.getElementById(tabName);
-            if(target) target.classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('bg-gray-700', 'text-white'));
-            if(button) button.classList.add('bg-gray-700', 'text-white');
-            if (tabName !== 'settings') document.getElementById('settings-panel').classList.add('hidden');
-        }
-
-        function toggleSettings() {
-            document.getElementById('settings-panel').classList.toggle('hidden');
-        }
-
-        function handleColorChange(e) {
-            const color = e.target.value;
-            document.documentElement.style.setProperty('--primary-color', color);
-            window.currentTheme = color;
-            window.dispatchEvent(new CustomEvent('themeChanged', { detail: color }));
-        }
-
-        // -- GAME LAUNCHER LOGIC --
-        function loadGame(gameId) {
-            const container = document.getElementById('game-stage');
-            container.innerHTML = ''; // Clear current game
-
-            if (gameId === 'math') startMathGame(container);
-            else if (gameId === 'memory') startMemoryGame(container);
-            else if (gameId === 'typing') startTypingGame(container);
-        }
-
-        // --- 1. MATH GAME ---
-        function startMathGame(container) {
-            let score = 0;
-            let timeLeft = 60;
-            let timer;
-            
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-full">
-                    <h2 class="text-4xl font-bold mb-4 text-primary">Math Sprint</h2>
-                    <div class="text-xl mb-4">Score: <span id="math-score">0</span> | Time: <span id="math-time">60</span>s</div>
-                    <div id="math-problem" class="text-6xl font-bold mb-6 p-6 bg-gray-800 rounded-xl border-2 border-gray-600">Ready?</div>
-                    <input type="number" id="math-answer" class="input-dark text-center text-2xl w-48" placeholder="Answer" disabled>
-                    <button id="math-start-btn" class="mt-4 px-6 py-2 bg-green-600 rounded font-bold hover:bg-green-500">Start Game</button>
-                </div>
-            `;
-
-            const problemEl = document.getElementById('math-problem');
-            const inputEl = document.getElementById('math-answer');
-            const startBtn = document.getElementById('math-start-btn');
-            let currentAnswer = 0;
-
-            function generateProblem() {
-                const ops = ['+', '-', '*'];
-                const op = ops[Math.floor(Math.random() * ops.length)];
-                let a = Math.floor(Math.random() * 12) + 1;
-                let b = Math.floor(Math.random() * 12) + 1;
-                
-                if (op === '*') { // Simplify mult
-                    a = Math.floor(Math.random() * 9) + 1;
-                    b = Math.floor(Math.random() * 9) + 1;
-                }
-                
-                currentAnswer = eval(`${a} ${op} ${b}`);
-                problemEl.textContent = `${a} ${op === '*' ? 'x' : op} ${b}`;
-                inputEl.value = '';
-                inputEl.focus();
-            }
-
-            startBtn.onclick = () => {
-                startBtn.classList.add('hidden');
-                inputEl.disabled = false;
-                score = 0;
-                timeLeft = 60;
-                document.getElementById('math-score').textContent = score;
-                generateProblem();
-                
-                timer = setInterval(() => {
-                    timeLeft--;
-                    document.getElementById('math-time').textContent = timeLeft;
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        problemEl.textContent = "Game Over!";
-                        inputEl.disabled = true;
-                        startBtn.textContent = "Play Again";
-                        startBtn.classList.remove('hidden');
-                    }
-                }, 1000);
-            };
-
-            inputEl.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') {
-                    if (parseInt(inputEl.value) === currentAnswer) {
-                        score += 10;
-                        document.getElementById('math-score').textContent = score;
-                        generateProblem();
-                    } else {
-                        // Penalty visual?
-                        inputEl.classList.add('border-red-500');
-                        setTimeout(()=>inputEl.classList.remove('border-red-500'), 200);
-                        inputEl.value = '';
-                    }
-                }
-            });
-        }
-
-        // --- 2. MEMORY GAME ---
-        function startMemoryGame(container) {
-            const icons = ['⚛️', '🧬', '📐', '💻', '🌍', '📚', '🎨', '🔬'];
-            let cards = [...icons, ...icons];
-            // Shuffle
-            cards.sort(() => 0.5 - Math.random());
-
-            let gridHtml = '';
-            cards.forEach((icon, index) => {
-                gridHtml += `
-                    <div class="memory-card h-24 w-full" data-icon="${icon}" onclick="flipCard(this)">
-                        <div class="memory-card-inner h-full w-full">
-                            <div class="memory-card-front">${icon}</div>
-                            <div class="memory-card-back"></div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-full p-4">
-                    <h2 class="text-3xl font-bold mb-2 text-primary">Memory Match</h2>
-                    <p class="mb-4 text-gray-400">Find all pairs to win!</p>
-                    <div class="grid grid-cols-4 gap-4 w-full max-w-md">
-                        ${gridHtml}
-                    </div>
-                    <button onclick="loadGame('memory')" class="mt-6 px-4 py-2 bg-gray-600 rounded hover:bg-gray-500">Reset</button>
-                </div>
-            `;
-            
-            window.hasFlippedCard = false;
-            window.lockBoard = false;
-            window.firstCard = null;
-            window.secondCard = null;
-        }
-
-        window.flipCard = function(card) {
-            if (window.lockBoard) return;
-            if (card === window.firstCard) return;
-
-            card.classList.add('flipped');
-
-            if (!window.hasFlippedCard) {
-                window.hasFlippedCard = true;
-                window.firstCard = card;
-                return;
-            }
-
-            window.secondCard = card;
-            checkForMatch();
-        }
-
-        function checkForMatch() {
-            let isMatch = window.firstCard.dataset.icon === window.secondCard.dataset.icon;
-            isMatch ? disableCards() : unflipCards();
-        }
-
-        function disableCards() {
-            window.firstCard.onclick = null;
-            window.secondCard.onclick = null;
-            resetBoard();
-        }
-
-        function unflipCards() {
-            window.lockBoard = true;
-            setTimeout(() => {
-                window.firstCard.classList.remove('flipped');
-                window.secondCard.classList.remove('flipped');
-                resetBoard();
-            }, 1000);
-        }
-
-        function resetBoard() {
-            [window.hasFlippedCard, window.lockBoard] = [false, false];
-            [window.firstCard, window.secondCard] = [null, null];
-        }
-
-        // --- 3. TYPING GAME ---
-        function startTypingGame(container) {
-             const sentences = [
-                "The quick brown fox jumps over the lazy dog.",
-                "Mitochondria is the powerhouse of the cell.",
-                "To be or not to be, that is the question.",
-                "Photosynthesis converts light energy into chemical energy.",
-                "The circumference of a circle is pi times the diameter."
-            ];
-            
-            let currentSentence = "";
-            let startTime;
-
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center">
-                    <h2 class="text-3xl font-bold mb-4 text-primary">Typing Velocity</h2>
-                    <div id="typing-text" class="text-xl mb-6 p-4 bg-gray-800 rounded select-none font-mono text-gray-400">
-                        Click Start to begin...
-                    </div>
-                    <textarea id="typing-input" class="w-full h-24 p-4 bg-gray-900 border border-gray-600 rounded mb-4 text-white font-mono" placeholder="Type here..." disabled></textarea>
-                    <div id="typing-result" class="text-lg font-bold h-8 text-green-400"></div>
-                    <button id="typing-btn" class="px-6 py-2 bg-blue-600 rounded font-bold hover:bg-blue-500">Start Test</button>
-                </div>
-            `;
-
-            const textDisplay = document.getElementById('typing-text');
-            const inputArea = document.getElementById('typing-input');
-            const btn = document.getElementById('typing-btn');
-            const result = document.getElementById('typing-result');
-
-            btn.onclick = () => {
-                currentSentence = sentences[Math.floor(Math.random() * sentences.length)];
-                textDisplay.textContent = currentSentence;
-                textDisplay.classList.remove('text-gray-400');
-                textDisplay.classList.add('text-white');
-                inputArea.value = "";
-                inputArea.disabled = false;
-                inputArea.focus();
-                result.textContent = "";
-                startTime = new Date();
-                btn.textContent = "Reset";
-            };
-
-            inputArea.addEventListener('input', () => {
-                const val = inputArea.value;
-                if (val === currentSentence) {
-                    const endTime = new Date();
-                    const timeTaken = (endTime - startTime) / 1000; // seconds
-                    const wpm = Math.round((currentSentence.split(' ').length / timeTaken) * 60);
-                    result.textContent = `Complete! Speed: ${wpm} WPM`;
-                    inputArea.disabled = true;
-                    btn.textContent = "New Sentence";
-                }
-            });
-        }
-
-
-        // -- Owner Settings Logic --
-        function unlockOwner() {
-            const pass = document.getElementById('owner-pass').value;
-            if (pass === 'owner123') {
-                window.ownerUnlocked = true;
-                document.getElementById('owner-controls').classList.remove('hidden');
-                document.getElementById('owner-lock-msg').classList.add('hidden');
-                alert('Owner mode unlocked!');
-            } else {
-                alert('Incorrect password.');
-            }
-        }
-
-        function saveApiKey() {
-            const key = document.getElementById('api-key-input').value.trim();
-            if (key) {
-                window.GLOBAL_KEY = key;
-                if (window.saveGlobalKeyToDB) {
-                    window.saveGlobalKeyToDB(key);
-                    alert('Hugging Face API Key saved Globally!');
-                } else {
-                    alert('Database not ready. Key saved locally.');
-                }
-            }
-        }
-
-        // -- AI Logic (Hugging Face) --
-        function runAiTool(toolType) {
-            const input = document.getElementById(toolType + '-input').value;
-            if(!input) return alert("Please enter text.");
-
-            let promptPrefix = "";
-            let modelInstructions = ""; // Placeholder for internal model instructions
-
-            // Create specific prompts/instructions based on the tool
-            if(toolType === 'teacher') {
-                modelInstructions = "Explain the following topic clearly and simply for a student:";
-            } else if(toolType === 'quiz') {
-                modelInstructions = "Generate a 3-question multiple choice quiz on the following topic. Respond only with the quiz and answers:";
-            } else if(toolType === 'flashcard') {
-                modelInstructions = "Create 5 term:definition flashcards for the following topic. Format the response as a list of Term: Definition pairs:";
-            }
-            
-            const prompt = `${modelInstructions} ${input}`;
-            const targetId = toolType + '-result';
-            const resultBox = document.getElementById(targetId);
-            
-            if(resultBox) {
-                 resultBox.innerHTML = '<span class="text-yellow-400">Thinking...</span>';
-                 
-                 const apiKey = window.GLOBAL_KEY;
-                 if(!apiKey) { 
-                     resultBox.innerHTML = '<span class="text-red-400">Error: Global API Key not loaded. Please set the Hugging Face API Key in Settings.</span>'; 
-                     return; 
-                 }
-
-                 // Hugging Face Inference API Configuration
-                 const hfModelUrl = "https://api-inference.huggingface.co/models/google/flan-t5-large"; // Placeholder Model URL
-
-                 fetch(hfModelUrl, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        // Use the API Key as a Bearer Token for Hugging Face
-                        'Authorization': `Bearer ${apiKey}` 
-                    },
-                    body: JSON.stringify({
-                        inputs: prompt,
-                        // Optional parameters for generation
-                        parameters: {
-                            max_new_tokens: 300,
-                            return_full_text: false 
-                        }
-                    })
-                 }).then(r => r.json()).then(data => {
-                     let generatedText = "Error: Could not parse response.";
-                     
-                     // Hugging Face API typically returns an array like [{"generated_text": "..."}]
-                     if (Array.isArray(data) && data.length > 0 && data[0].generated_text) {
-                         generatedText = data[0].generated_text;
-                     } else if (data.error) {
-                         // Handle Hugging Face specific errors (e.g., rate limit, model loading)
-                         generatedText = `HF Error: ${data.error}. Check your model URL or API Key.`;
-                     }
-
-                     resultBox.innerHTML = generatedText.replace(/\n/g, '<br>');
-
-                 }).catch(e => {
-                     resultBox.innerHTML = `<span class="text-red-400">Fetch Error: ${e.message}</span>`;
-                 });
-            }
-        }
-        
-        function runMath() {
-            const v = document.getElementById('math-input').value;
-            try {
-                if (v.includes('window') || v.includes('doc')) throw new Error("Unsafe");
-                const res = eval(v);
-                document.getElementById('math-result').innerText = "Result: " + res;
-            } catch(e) {
-                document.getElementById('math-result').innerText = "Error";
-            }
-        }
-
-        // -- Modal Logic --
-        function hideSubscriptionModal() {
-            document.getElementById('subscription-modal').classList.add('hidden');
-            sessionStorage.setItem('hasSeenModal', 'true');
-        }
-
-        function handleSubscribe() {
-            window.open('https://www.youtube.com/@cursedgamer2', '_blank');
-            hideSubscriptionModal();
-        }
-
-        function checkModal() {
-            if (!sessionStorage.getItem('hasSeenModal')) {
-                document.getElementById('subscription-modal').classList.remove('hidden');
-            }
-        }
-
-        // -- Initialize UI --
-        window.addEventListener('DOMContentLoaded', () => {
-            const bookmarklets = [
-                { title: "Zoom Text", code: "javascript:(function(){var size=parseFloat(document.body.style.fontSize)||16;size*=1.2;document.body.style.fontSize=size+'px';})();" },
-                { title: "Edit Page", code: "javascript:document.body.contentEditable='true';document.designMode='on';void 0" },
-                { title: "Dark Mode", code: "javascript:(function(){var s=document.createElement('style');s.innerHTML='body{filter:invert(100%)!important;background:#222!important;}img,video{filter:invert(100%)!important;}';document.head.appendChild(s);})();" },
-                { title: "History Back", code: "javascript:history.back()" },
-                { title: "Piano", code: "javascript:(function(){var s=document.createElement('script');s.setAttribute('src','https://www.funhtml5games.com/bookmarklets/piano/piano.js');document.body.appendChild(s);})();" }
-            ];
-            
-            const container = document.getElementById('bm-grid');
-            if(container) {
-                container.innerHTML = bookmarklets.map(b => `
-                    <div class="card p-4 hover:ring-2 hover-ring-primary transition">
-                        <h3 class="font-bold text-lg mb-2">${b.title}</h3>
-                        <a href="${b.code}" class="inline-block px-4 py-2 bg-primary text-white rounded shadow hover:opacity-90">Drag Me</a>
-                    </div>
-                `).join('');
-            }
-
-            checkModal();
-            // Load Math game by default
-            loadGame('math');
-        });
-    </script>
-</head>
-<body class="p-4 sm:p-8">
-
-    <header class="text-center mb-6">
-        <h1 class="text-4xl font-extrabold mb-2">Ultimate Portal</h1>
-        <p class="text-gray-400">Study Edition</p>
-    </header>
-
-    <div id="status-message" class="text-center text-yellow-400 text-xs mb-4 h-4"></div>
-
-    <nav class="flex justify-center card p-1 mb-6 space-x-1 max-w-4xl mx-auto">
-        <button onclick="openTab('bookmarklets', this)" class="flex-1 py-2 px-4 rounded-lg font-medium bg-gray-700 text-white transition-all">Bookmarklets</button>
-        <button onclick="openTab('games', this)" class="flex-1 py-2 px-4 rounded-lg font-medium text-gray-300 hover:bg-gray-600 transition-all">Study Games</button>
-        <button onclick="openTab('study', this)" class="flex-1 py-2 px-4 rounded-lg font-medium text-gray-300 hover:bg-gray-600 transition-all">AI Hub</button>
-        <button onclick="toggleSettings()" class="py-2 px-4 rounded-lg font-medium text-gray-300 hover:bg-gray-600 transition-all">Settings</button>
-    </nav>
-    
-    <div id="main-content-area" class="max-w-4xl mx-auto w-full">
-
-        <!-- Settings Panel -->
-        <div id="settings-panel" class="card p-6 mb-6 hidden">
-            <h2 class="text-2xl font-semibold mb-4">Settings</h2>
-            <div class="mb-6">
-                <label class="font-medium block mb-2">Theme Color:</label>
-                <input type="color" value="#3b82f6" oninput="handleColorChange(event)" class="h-8 w-16 cursor-pointer rounded">
-            </div>
-            <div class="card p-4 border border-gray-600">
-                <h3 class="font-bold text-lg mb-2 text-red-400">Owner Zone</h3>
-                <div id="owner-lock-msg">
-                    <input type="password" id="owner-pass" placeholder="Enter Password" class="input-dark mb-2">
-                    <button onclick="unlockOwner()" class="w-full py-2 bg-gray-600 hover:bg-gray-500 rounded font-bold mt-1">Unlock</button>
-                </div>
-                <div id="owner-controls" class="hidden">
-                    <label class="block text-sm mb-1 text-gray-400">Global AI Key (Hugging Face):</label>
-                    <input type="text" id="api-key-input" placeholder="hf_..." class="input-dark mb-2">
-                    <button onclick="saveApiKey()" class="w-full py-2 bg-green-600 rounded font-bold">Save Globally</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bookmarklets -->
-        <div id="bookmarklets" class="tab-content">
-            <h2 class="text-3xl font-bold mb-4">Bookmarklets</h2>
-            <div id="bm-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-
-        <!-- Study Games -->
-        <div id="games" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-3xl font-bold">Study Games</h2>
-                <div class="space-x-2">
-                    <button onclick="loadGame('math')" class="text-xs bg-gray-600 px-3 py-1 rounded hover:bg-primary">Math Sprint</button>
-                    <button onclick="loadGame('memory')" class="text-xs bg-gray-600 px-3 py-1 rounded hover:bg-primary">Memory Match</button>
-                    <button onclick="loadGame('typing')" class="text-xs bg-gray-600 px-3 py-1 rounded hover:bg-primary">Typing</button>
-                </div>
-            </div>
-            
-            <!-- Game Stage -->
-            <div id="game-stage" class="game-container flex flex-col items-center justify-center">
-                <!-- Game content injected here -->
-            </div>
-        </div>
-
-        <!-- AI Hub -->
-        <div id="study" class="tab-content hidden">
-            <h2 class="text-3xl font-bold mb-4">AI Hub (Hugging Face)</h2>
-            <p class="text-sm text-gray-400 mb-6">Powered by the Global Hugging Face API Key set in Settings.</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="card p-4">
-                    <h3 class="font-bold text-xl text-blue-400 mb-2">AI Teacher</h3>
-                    <textarea id="teacher-input" rows="3" class="input-dark" placeholder="Ask anything..."></textarea>
-                    <button onclick="runAiTool('teacher')" class="mt-2 w-full bg-primary py-2 rounded font-bold">Ask</button>
-                    <div id="teacher-result" class="mt-3 text-sm p-2 bg-gray-800 rounded h-32 overflow-auto"></div>
-                </div>
-                <div class="card p-4">
-                    <h3 class="font-bold text-xl text-purple-400 mb-2">Quiz Maker</h3>
-                    <input id="quiz-input" type="text" class="input-dark" placeholder="Topic">
-                    <button onclick="runAiTool('quiz')" class="mt-2 w-full bg-purple-600 py-2 rounded font-bold">Generate</button>
-                    <div id="quiz-result" class="mt-3 text-sm p-2 bg-gray-800 rounded h-32 overflow-auto"></div>
-                </div>
-                <div class="card p-4">
-                    <h3 class="font-bold text-xl text-green-400 mb-2">Flashcards</h3>
-                    <input id="flashcard-input" type="text" class="input-dark" placeholder="Topic">
-                    <button onclick="runAiTool('flashcard')" class="mt-2 w-full bg-green-600 py-2 rounded font-bold">Create</button>
-                    <div id="flashcard-result" class="mt-3 text-sm p-2 bg-gray-800 rounded h-32 overflow-auto"></div>
-                </div>
-                <div class="card p-4">
-                    <h3 class="font-bold text-xl text-orange-400 mb-2">Math Solver</h3>
-                    <input id="math-input" type="text" class="input-dark" placeholder="e.g. 12 * 12">
-                    <button onclick="runMath()" class="mt-2 w-full bg-orange-600 py-2 rounded font-bold">Solve</button>
-                    <div id="math-result" class="mt-3 text-sm p-2 bg-gray-800 rounded">Result:</div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-    
-    <!-- Modal -->
-    <div id="subscription-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3 class="text-2xl font-bold mb-4 text-primary">👋 Support!</h3>
-            <p class="mb-6 text-gray-300">Subscribe to @cursedgamer2</p>
-            <button onclick="handleSubscribe()" class="w-full mb-3 px-6 py-3 bg-red-600 text-white font-bold rounded hover:bg-red-700 transition">SUBSCRIBE ▶️</button>
-            <button onclick="hideSubscriptionModal()" class="w-full px-6 py-2 bg-gray-600 text-gray-300 font-semibold rounded hover:bg-gray-500">Dismiss</button>
-        </div>
-    </div>
-
-    <!-- 2. MODULE SCRIPT for Database -->
+    <!-- Firebase Setup -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        
-        let db;
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'study-hub-v7';
 
-        async function initFirebase() {
-            if (Object.keys(firebaseConfig).length === 0) return;
+        let db, auth;
+        
+        // Global settings state
+        window.appSettings = {
+            theme: '#3b82f6',
+            aiProvider: 'Gemini',
+            keys: {}
+        };
+
+        if (firebaseConfig) {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            const auth = getAuth(app);
+            auth = getAuth(app);
             await signInAnonymously(auth);
-            
+
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    document.getElementById('status-message').textContent = "Connected";
-                    loadGlobalKey();
-                    
-                    // Load user theme
-                    const tRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'theme');
-                    getDoc(tRef).then(s => {
-                        if(s.exists()) {
-                             const c = s.data().primaryColor;
-                             document.documentElement.style.setProperty('--primary-color', c);
-                             const p = document.querySelector('input[type="color"]');
-                             if(p) p.value = c;
-                        }
-                    });
+                    // Load Settings
+                    const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'config');
+                    const snap = await getDoc(docRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if(data.theme) applyTheme(data.theme);
+                        if(data.keys) window.appSettings.keys = data.keys;
+                        if(data.provider) window.appSettings.aiProvider = data.provider;
+                        updateUiFromSettings();
+                    }
                 }
             });
+
+            // Save function exposed globally
+            window.saveSettingsToDb = async () => {
+                if (!auth.currentUser) return;
+                const docRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'config');
+                await setDoc(docRef, {
+                    theme: window.appSettings.theme,
+                    keys: window.appSettings.keys,
+                    provider: window.appSettings.aiProvider
+                }, { merge: true });
+                alert("Settings Saved to Cloud!");
+            };
         }
-
-        async function saveGlobalKey(key) {
-            if (!db) return;
-            // Key is stored in a public, global document
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global_ai');
-            await setDoc(ref, { apiKey: key }, { merge: true });
-        }
-
-        async function loadGlobalKey() {
-            if (!db) return;
-            // Key is loaded from the public, global document
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'global_ai');
-            const snap = await getDoc(ref);
-            if (snap.exists()) {
-                window.GLOBAL_KEY = snap.data().apiKey;
-                console.log("Global Key Loaded");
-            }
-        }
-
-        window.saveGlobalKeyToDB = saveGlobalKey;
-        
-        // Listen for theme changes to save them
-        window.addEventListener('themeChanged', async (e) => {
-            const auth = getAuth();
-            if(auth.currentUser) {
-                 const ref = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'theme');
-                 await setDoc(ref, { primaryColor: e.detail }, { merge: true });
-            }
-        });
-
-        initFirebase();
     </script>
+
+    <style>
+        :root { --primary-color: #3b82f6; }
+        .bg-primary { background-color: var(--primary-color); }
+        .text-primary { color: var(--primary-color); }
+        .border-primary { border-color: var(--primary-color); }
+        
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #f3f4f6; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+
+        .tab-content { height: 100%; display: flex; flex-direction: column; }
+        .hidden { display: none !important; }
+        
+        .resource-link:hover { transform: translateX(5px); }
+        .youtube-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 0.5rem; }
+        .youtube-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    </style>
+
+    <script>
+        // --- UI LOGIC ---
+        
+        function applyTheme(color) {
+            document.documentElement.style.setProperty('--primary-color', color);
+            window.appSettings.theme = color;
+            const picker = document.getElementById('color-picker');
+            if(picker) picker.value = color;
+        }
+
+        function openTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('bg-gray-700', 'text-white'));
+            if(btn) btn.classList.add('bg-gray-700', 'text-white');
+            
+            // Special handling for subject resources
+            if(tabId === 'resources') loadResources('Math');
+        }
+
+        function updateUiFromSettings() {
+            document.getElementById('ai-provider-select').value = window.appSettings.aiProvider;
+            document.getElementById('gemini-key').value = window.appSettings.keys.gemini || '';
+            document.getElementById('openai-key').value = window.appSettings.keys.openai || '';
+            document.getElementById('color-picker').value = window.appSettings.theme;
+            applyTheme(window.appSettings.theme);
+        }
+
+        function saveLocalSettings() {
+            window.appSettings.keys.gemini = document.getElementById('gemini-key').value;
+            window.appSettings.keys.openai = document.getElementById('openai-key').value;
+            window.appSettings.aiProvider = document.getElementById('ai-provider-select').value;
+            
+            if(window.saveSettingsToDb) window.saveSettingsToDb();
+            else alert("Settings saved locally (Database not connected).");
+        }
+
+        // --- MUSIC PLAYER LOGIC ---
+        
+        function playMusic() {
+            const type = document.getElementById('music-type').value;
+            const input = document.getElementById('music-input').value;
+            const playerArea = document.getElementById('player-area');
+            const audioPlayer = document.getElementById('audio-player');
+
+            playerArea.innerHTML = ''; // Clear previous
+            audioPlayer.pause();
+
+            if (type === 'youtube') {
+                let videoId = input.split('v=')[1];
+                const ampersandPosition = videoId ? videoId.indexOf('&') : -1;
+                if(ampersandPosition !== -1) {
+                  videoId = videoId.substring(0, ampersandPosition);
+                }
+                if(videoId) {
+                    playerArea.innerHTML = `<div class="youtube-container"><iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`;
+                } else {
+                    alert("Invalid YouTube URL");
+                }
+            } else if (type === 'url') {
+                audioPlayer.src = input;
+                audioPlayer.classList.remove('hidden');
+                audioPlayer.play();
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                const audioPlayer = document.getElementById('audio-player');
+                audioPlayer.src = url;
+                audioPlayer.classList.remove('hidden');
+                audioPlayer.play();
+            }
+        }
+
+        // Tone.js Noise
+        let noiseSynth;
+        function toggleNoise(type) {
+            if(noiseSynth) {
+                noiseSynth.stop();
+                noiseSynth.dispose();
+                noiseSynth = null;
+                document.getElementById('noise-btn').textContent = "Start Focus Noise";
+                return;
+            }
+            
+            // Start Audio Context
+            Tone.start();
+            noiseSynth = new Tone.Noise(type).toDestination();
+            // Auto-filter to make it softer
+            const filter = new Tone.AutoFilter({
+                frequency: "8m",
+                min: 800,
+                max: 15000
+            }).connect(Tone.Master);
+            noiseSynth.connect(filter);
+            
+            noiseSynth.start();
+            document.getElementById('noise-btn').textContent = "Stop Noise";
+        }
+
+        // --- TIMER LOGIC ---
+        let timerInterval;
+        let timeLeft;
+        
+        function startTimer(minutes) {
+            clearInterval(timerInterval);
+            timeLeft = minutes * 60;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+                    alert("Time's up!");
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('timer-display').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('timer-display').textContent = "00:00";
+        }
+
+        // --- RESOURCE LIBRARY DATA (7th Grade) ---
+        const resources = {
+            'Math': [
+                { title: "Ratios & Proportions Calculator", url: "https://www.calculatorsoup.com/calculators/math/ratios.php", type: "tool" },
+                { title: "Integer Operations Game", url: "https://www.mathplayground.com/ASB_IntegerWarp.html", type: "game" },
+                { title: "Equation Solver", url: "https://www.mathpapa.com/algebra-calculator.html", type: "tool" },
+                { title: "Area & Circumference Visualizer", url: "https://www.geogebra.org/m/j32G5j47", type: "tool" },
+                { title: "Probability Spinner", url: "https://wheelofnames.com/", type: "tool" },
+                { title: "Khan Academy: 7th Grade Math", url: "https://www.khanacademy.org/math/cc-seventh-grade-math", type: "link" },
+                { title: "IXL Math Practice", url: "https://www.ixl.com/math/grade-7", type: "link" },
+                { title: "Desmos Graphing Calculator", url: "https://www.desmos.com/calculator", type: "tool" },
+                { title: "Math is Fun: Geometry", url: "https://www.mathsisfun.com/geometry/index.html", type: "link" },
+                { title: "Prodigy Math Game", url: "https://www.prodigygame.com/", type: "game" }
+            ],
+            'Science': [
+                { title: "Periodic Table Interactive", url: "https://ptable.com/", type: "tool" },
+                { title: "Cell Model Visualizer", url: "https://www.cellsalive.com/cells/cell_model.htm", type: "tool" },
+                { title: "NASA Eyes on the Solar System", url: "https://eyes.nasa.gov/", type: "tool" },
+                { title: "PhET Simulations", url: "https://phet.colorado.edu/", type: "tool" },
+                { title: "Dynamic Earth (Plate Tectonics)", url: "https://interactive.learner.org/interactives/dynamicearth/", type: "tool" },
+                { title: "National Geographic Kids", url: "https://kids.nationalgeographic.com/", type: "link" },
+                { title: "Switch Zoo (Animal Adaptations)", url: "https://www.switchzoo.com/", type: "game" },
+                { title: "Food Chain Game", url: "https://www.sheppardsoftware.com/content/animals/kidscorner/games/foodchaingame.htm", type: "game" },
+                { title: "InnerBody Anatomy", url: "https://www.innerbody.com/", type: "tool" },
+                { title: "Science Bob Experiments", url: "https://sciencebob.com/", type: "link" }
+            ],
+            'History': [
+                { title: "Ancient Civilizations Timeline", url: "https://www.historyforkids.net/ancient-history.html", type: "link" },
+                { title: "Google Earth Voyager", url: "https://earth.google.com/web/voyager", type: "tool" },
+                { title: "The Democracy Project", url: "https://pbskids.org/democracy", type: "link" },
+                { title: "Mission US (History Game)", url: "https://www.mission-us.org/", type: "game" },
+                { title: "Interactive World Map", url: "https://geology.com/world/world-map.shtml", type: "tool" },
+                { title: "Smithsonian History Explorer", url: "https://historyexplorer.si.edu/", type: "link" },
+                { title: "iCivics (Gov Games)", url: "https://www.icivics.org/games", type: "game" },
+                { title: "DocsTeach (Primary Sources)", url: "https://www.docsteach.org/", type: "link" },
+                { title: "History.com Classroom", url: "https://www.history.com/classroom", type: "link" },
+                { title: "Big History Project", url: "https://www.bighistoryproject.com/", type: "link" }
+            ],
+            'ELA': [
+                { title: "Thesaurus.com", url: "https://www.thesaurus.com/", type: "tool" },
+                { title: "Hemingway Editor (Writing Tool)", url: "https://hemingwayapp.com/", type: "tool" },
+                { title: "Grammarly (Free Checker)", url: "https://www.grammarly.com/", type: "tool" },
+                { title: "Vocabulary.com", url: "https://www.vocabulary.com/", type: "link" },
+                { title: "Project Gutenberg (Free Books)", url: "https://www.gutenberg.org/", type: "link" },
+                { title: "Poetry Foundation", url: "https://www.poetryfoundation.org/", type: "link" },
+                { title: "ReadWriteThink", url: "https://www.readwritethink.org/", type: "link" },
+                { title: "Quill.org (Grammar Practice)", url: "https://www.quill.org/", type: "tool" },
+                { title: "Storyboard That", url: "https://www.storyboardthat.com/", type: "tool" },
+                { title: "Citation Machine", url: "https://www.citationmachine.net/", type: "tool" }
+            ]
+        };
+
+        function loadResources(subject) {
+            const list = document.getElementById('resource-list');
+            list.innerHTML = '';
+            
+            document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('bg-primary', 'text-white'));
+            document.getElementById(`btn-${subject}`).classList.add('bg-primary', 'text-white');
+
+            resources[subject].forEach(res => {
+                const item = document.createElement('div');
+                item.className = 'bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-primary transition resource-link cursor-pointer';
+                item.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-gray-200">${res.title}</h4>
+                            <span class="text-xs uppercase font-semibold text-gray-500 tracking-wider">${res.type}</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    </div>
+                `;
+                item.onclick = () => window.open(res.url, '_blank');
+                list.appendChild(item);
+            });
+        }
+        
+        // --- AI Logic ---
+        async function callAI() {
+            const prompt = document.getElementById('ai-input').value;
+            const provider = document.getElementById('ai-provider-select').value;
+            const output = document.getElementById('ai-output');
+            
+            if(!prompt) return;
+            
+            output.innerHTML = '<span class="text-yellow-400">Thinking...</span>';
+            
+            const key = window.appSettings.keys[provider.toLowerCase()];
+            
+            if(!key) {
+                output.innerHTML = '<span class="text-red-400">Error: API Key missing for ' + provider + '. Check Settings.</span>';
+                return;
+            }
+            
+            try {
+                let text = "";
+                if (provider === 'Gemini') {
+                    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    const data = await resp.json();
+                    text = data.candidates[0].content.parts[0].text;
+                } else if (provider === 'OpenAI') {
+                    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model: "gpt-3.5-turbo", messages: [{role: "user", content: prompt}] })
+                    });
+                    const data = await resp.json();
+                    text = data.choices[0].message.content;
+                }
+                
+                output.innerHTML = marked.parse(text);
+                
+            } catch(e) {
+                output.innerHTML = `<span class="text-red-400">Error: ${e.message}</span>`;
+            }
+        }
+
+        // --- GENERATOR LOGIC ---
+        async function runGenerator(type) {
+            const topic = document.getElementById(type + '-topic').value;
+            if (!topic) return alert("Please enter a topic!");
+            
+            // Reuse the AI function but with specific prompts
+            const provider = document.getElementById('ai-provider-select').value;
+            const key = window.appSettings.keys[provider.toLowerCase()];
+            if (!key) return alert("No API Key set in Settings!");
+
+            const resultDiv = document.getElementById(type + '-result');
+            resultDiv.innerHTML = `<span class="text-yellow-400">Generating ${type}...</span>`;
+            
+            let prompt = "";
+            if (type === 'flashcard') prompt = `Create 5 flashcards for the topic: ${topic}. Format as Question: Answer pairs.`;
+            if (type === 'quiz') prompt = `Create a 3-question multiple choice quiz about: ${topic}. Include the answer key at the end.`;
+
+             try {
+                let text = "";
+                if (provider === 'Gemini') {
+                    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    const data = await resp.json();
+                    text = data.candidates[0].content.parts[0].text;
+                } else if (provider === 'OpenAI') {
+                    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model: "gpt-3.5-turbo", messages: [{role: "user", content: prompt}] })
+                    });
+                    const data = await resp.json();
+                    text = data.choices[0].message.content;
+                }
+                
+                resultDiv.innerHTML = marked.parse(text);
+                
+            } catch(e) {
+                resultDiv.innerHTML = `<span class="text-red-400">Error: ${e.message}</span>`;
+            }
+        }
+
+    </script>
+</head>
+<body class="p-4 sm:p-6">
+
+    <header class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-white">7th Grade Ultimate Hub</h1>
+            <p class="text-gray-400 text-sm">Study. Focus. Achieve.</p>
+        </div>
+        <div class="flex space-x-2">
+            <button onclick="toggleSettings()" class="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Settings Modal -->
+    <div id="settings-panel" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+        <div class="bg-gray-800 p-6 rounded-xl max-w-md w-full border border-gray-700">
+            <h2 class="text-xl font-bold mb-4 text-white">Settings</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400">Theme Color</label>
+                    <input type="color" id="color-picker" class="w-full h-10 rounded cursor-pointer" oninput="applyTheme(this.value)">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400">Gemini API Key</label>
+                    <input type="password" id="gemini-key" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400">OpenAI API Key</label>
+                    <input type="password" id="openai-key" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white">
+                </div>
+                <button onclick="saveLocalSettings(); document.getElementById('settings-panel').classList.add('hidden')" class="w-full bg-primary text-white py-2 rounded font-bold hover:opacity-90">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex space-x-2 mb-4 overflow-x-auto pb-2">
+        <button onclick="openTab('ai-generators', this)" class="px-4 py-2 rounded-lg bg-gray-700 text-white font-medium whitespace-nowrap">⚡ Study Generators</button>
+        <button onclick="openTab('resources', this)" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 font-medium hover:bg-gray-700 whitespace-nowrap">📚 Resources</button>
+        <button onclick="openTab('music', this)" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 font-medium hover:bg-gray-700 whitespace-nowrap">🎵 Music & Focus</button>
+        <button onclick="openTab('bookmarklets', this)" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 font-medium hover:bg-gray-700 whitespace-nowrap">🔖 Bookmarklets</button>
+    </nav>
+
+    <!-- 1. AI GENERATORS (formerly AI Hub) -->
+    <div id="ai-generators" class="tab-content">
+        <div class="flex flex-col h-full">
+            <!-- Provider & Chat -->
+            <div class="mb-4 flex items-center space-x-4">
+                <select id="ai-provider-select" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg p-2.5">
+                    <option value="Gemini">Gemini</option>
+                    <option value="OpenAI">OpenAI</option>
+                </select>
+                <span class="text-xs text-gray-500">Set keys in Settings (Gear Icon)</span>
+            </div>
+
+            <!-- Grid for Generators -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                 <!-- Flashcard Maker -->
+                 <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-lg font-bold text-primary mb-2">Flashcard Maker</h3>
+                    <input type="text" id="flashcard-topic" class="w-full bg-gray-900 border border-gray-700 rounded p-2 mb-2 text-white" placeholder="Enter topic (e.g. Cell Biology)">
+                    <button onclick="runGenerator('flashcard')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 rounded">Generate Cards</button>
+                    <div id="flashcard-result" class="mt-2 text-sm text-gray-300 max-h-32 overflow-y-auto"></div>
+                 </div>
+
+                 <!-- Quiz Maker -->
+                 <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-lg font-bold text-primary mb-2">Quiz Maker</h3>
+                    <input type="text" id="quiz-topic" class="w-full bg-gray-900 border border-gray-700 rounded p-2 mb-2 text-white" placeholder="Enter topic (e.g. American Revolution)">
+                    <button onclick="runGenerator('quiz')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-1 rounded">Generate Quiz</button>
+                    <div id="quiz-result" class="mt-2 text-sm text-gray-300 max-h-32 overflow-y-auto"></div>
+                 </div>
+            </div>
+
+            <!-- General AI Chat -->
+            <div class="flex-grow bg-gray-800 rounded-xl border border-gray-700 p-4 overflow-y-auto mb-4" id="ai-output">
+                <div class="text-center text-gray-500 mt-10">
+                    <h3 class="text-xl font-bold mb-2">AI Study Assistant</h3>
+                    <p>Ask for help with Math, Essay writing, or History facts below.</p>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <input type="text" id="ai-input" class="flex-grow bg-gray-900 border border-gray-700 text-white rounded-lg p-3 focus:outline-none focus:border-primary" placeholder="Ask your AI Tutor...">
+                <button onclick="callAI()" class="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:opacity-90">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. RESOURCE LIBRARY -->
+    <div id="resources" class="tab-content hidden">
+        <div class="flex space-x-2 mb-4 overflow-x-auto">
+            <button id="btn-Math" class="subject-btn px-4 py-2 rounded-full bg-gray-800 text-sm hover:bg-gray-700" onclick="loadResources('Math')">Math</button>
+            <button id="btn-Science" class="subject-btn px-4 py-2 rounded-full bg-gray-800 text-sm hover:bg-gray-700" onclick="loadResources('Science')">Science</button>
+            <button id="btn-History" class="subject-btn px-4 py-2 rounded-full bg-gray-800 text-sm hover:bg-gray-700" onclick="loadResources('History')">History</button>
+            <button id="btn-ELA" class="subject-btn px-4 py-2 rounded-full bg-gray-800 text-sm hover:bg-gray-700" onclick="loadResources('ELA')">ELA</button>
+        </div>
+        <div id="resource-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-full overflow-y-auto pb-20">
+            <!-- Resources injected here -->
+        </div>
+    </div>
+
+    <!-- 3. MUSIC & FOCUS -->
+    <div id="music" class="tab-content hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            <!-- Player -->
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex flex-col">
+                <h3 class="text-xl font-bold mb-4 text-white">Music Player</h3>
+                <div class="mb-4">
+                    <label class="block text-xs text-gray-400 mb-1">Source Type</label>
+                    <select id="music-type" class="w-full bg-gray-900 border border-gray-700 rounded p-2 mb-2">
+                        <option value="youtube">YouTube Link</option>
+                        <option value="url">MP3 Link</option>
+                    </select>
+                    <input type="text" id="music-input" placeholder="Paste URL here..." class="w-full bg-gray-900 border border-gray-700 rounded p-2">
+                    <div class="mt-2 flex justify-between items-center">
+                        <label class="text-xs text-gray-400 cursor-pointer hover:text-white">
+                            <input type="file" class="hidden" onchange="handleFileUpload(event)" accept="audio/*">
+                            📁 Upload Local File
+                        </label>
+                        <button onclick="playMusic()" class="bg-green-600 text-white px-4 py-1 rounded text-sm font-bold">Play</button>
+                    </div>
+                </div>
+                <div id="player-area" class="flex-grow bg-black rounded flex items-center justify-center overflow-hidden relative">
+                    <span class="text-gray-600">Player Screen</span>
+                    <audio id="audio-player" controls class="hidden absolute bottom-0 w-full"></audio>
+                </div>
+            </div>
+
+            <!-- Timer & Ambience -->
+            <div class="flex flex-col space-y-6">
+                <!-- Timer -->
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center flex-grow flex flex-col justify-center">
+                    <h3 class="text-gray-400 uppercase tracking-widest text-xs font-bold mb-2">Focus Timer</h3>
+                    <div id="timer-display" class="text-6xl font-mono font-bold text-white mb-6">00:00</div>
+                    <div class="flex justify-center space-x-2 mb-4">
+                        <button onclick="startTimer(25)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">25m</button>
+                        <button onclick="startTimer(5)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">5m</button>
+                        <button onclick="startTimer(15)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">15m</button>
+                    </div>
+                    <button onclick="resetTimer()" class="text-red-400 text-sm hover:text-red-300">Reset</button>
+                </div>
+
+                <!-- Noise -->
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                    <h3 class="font-bold mb-2">Focus Ambience (Tone.js)</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="toggleNoise('pink')" id="noise-btn" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded text-sm">Start Focus Noise</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. BOOKMARKLETS -->
+    <div id="bookmarklets" class="tab-content hidden">
+        <div class="flex gap-4 mb-6">
+            <!-- Mini Player Bookmarklet -->
+            <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg flex-1">
+                <h3 class="text-blue-400 font-bold mb-1">🎵 Mini Music Player Bookmarklet</h3>
+                <p class="text-sm text-gray-400 mb-2">Drag this to bookmarks. Opens a popup player.</p>
+                <a href="javascript:(function(){window.open('data:text/html;charset=utf-8,' + encodeURIComponent('<!DOCTYPE html><html><head><title>Mini Player</title><style>body{margin:0;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;}</style></head><body><h2>Paste YouTube/MP3 URL here to play</h2></body></html>'), 'MiniPlayer', 'width=400,height=400');})();" class="inline-block bg-blue-600 text-white px-4 py-2 rounded font-bold shadow-lg cursor-grab active:cursor-grabbing">Mini Player</a>
+            </div>
+
+             <!-- Mini Browser Bookmarklet -->
+            <div class="bg-green-900/20 border border-green-500/30 p-4 rounded-lg flex-1">
+                <h3 class="text-green-400 font-bold mb-1">🌐 Mini Browser Bookmarklet</h3>
+                <p class="text-sm text-gray-400 mb-2">Drag this to bookmarks. Opens a small browser popup.</p>
+                <a href="javascript:(function(){var w=window.open('about:blank','_blank','width=600,height=400,menubar=no,toolbar=no,location=no,status=no');var d=w.document;d.write('<!DOCTYPE html><html><head><title>Mini Browser</title><style>body{margin:0;display:flex;flex-direction:column;height:100vh;}input{padding:10px;border:none;border-bottom:1px solid #ccc;}iframe{flex-grow:1;border:none;}</style></head><body><input type=\'text\' id=\'url\' placeholder=\'Enter URL (https://...)\' style=\'width:100%\'><iframe id=\'frame\' src=\'about:blank\'></iframe><script>document.getElementById(\'url\').addEventListener(\'keydown\',function(e){if(e.key===\'Enter\'){document.getElementById(\'frame\').src=this.value;}});</script></body></html>');d.close();})();" class="inline-block bg-green-600 text-white px-4 py-2 rounded font-bold shadow-lg cursor-grab active:cursor-grabbing">Mini Browser</a>
+            </div>
+        </div>
+
+        <h2 class="text-xl font-bold mb-4">Classic Tools</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div class="bg-gray-800 p-4 rounded border border-gray-700">
+                <a href="javascript:document.body.contentEditable='true';document.designMode='on';void 0" class="text-primary font-bold block mb-1">Edit Page</a>
+                <p class="text-xs text-gray-500">Make any website text editable.</p>
+             </div>
+             <div class="bg-gray-800 p-4 rounded border border-gray-700">
+                <a href="javascript:(function(){var s=document.createElement('style');s.innerHTML='body{filter:invert(100%)!important;background:#222!important;}img,video{filter:invert(100%)!important;}';document.head.appendChild(s);})();" class="text-primary font-bold block mb-1">Dark Mode</a>
+                <p class="text-xs text-gray-500">Force dark mode on any site.</p>
+             </div>
+             <div class="bg-gray-800 p-4 rounded border border-gray-700">
+                <a href="javascript:(function(){window.scrollTo(0,0);})();" class="text-primary font-bold block mb-1">Scroll Top</a>
+                <p class="text-xs text-gray-500">Jump to top of page.</p>
+             </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize with Math resources
+        loadResources('Math');
+    </script>
+
 </body>
 </html>
